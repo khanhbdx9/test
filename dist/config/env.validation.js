@@ -13,6 +13,9 @@ exports.envValidationSchema = joi_1.default.object({
     DATABASE_URL: joi_1.default.string()
         .pattern(/^postgres(ql)?:\/\//)
         .required(),
+    DATABASE_URL_TEST: joi_1.default.string()
+        .pattern(/^postgres(ql)?:\/\//)
+        .optional(),
     JWT_SECRET: joi_1.default.string().min(16).required(),
     JWT_EXPIRES_IN: joi_1.default.string()
         .pattern(/^\d+(s|m|h|d)$/)

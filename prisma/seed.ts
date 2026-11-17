@@ -1,7 +1,12 @@
-import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { hashPassword } from '../src/common/utils/password.util';
 import { PrismaClient } from '../src/generated/prisma/client';
+
+// Chỉ nạp .env ở local/dev. Production dùng biến môi trường inject sẵn.
+if (process.env.NODE_ENV !== 'production') {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require('dotenv').config();
+}
 
 const ACTIONS: Record<string, string> = {
   view: 'Xem',

@@ -9,6 +9,8 @@ API quản lý cửa hàng bánh sinh nhật. Phase 2 gồm xác thực JWT, ref
 
 ## Biến môi trường
 
+Local/dev dùng file `.env`. Production không dùng dotenv — inject biến môi trường qua Docker/platform.
+
 ```bash
 cp .env.example .env
 ```

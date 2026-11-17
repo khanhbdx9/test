@@ -1,8 +1,8 @@
 const { execSync } = require('node:child_process');
-const { config } = require('dotenv');
 const { Client } = require('pg');
 
-config();
+// Script chỉ dùng local/CI — không chạy trên production.
+require('dotenv').config();
 
 const DEFAULT_TEST_URL =
   'postgresql://postgres:postgres@localhost:5432/cake_shop_test?schema=public';
