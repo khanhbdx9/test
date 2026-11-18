@@ -8,9 +8,6 @@ export const envValidationSchema = Joi.object({
   DATABASE_URL: Joi.string()
     .pattern(/^postgres(ql)?:\/\//)
     .required(),
-  DATABASE_URL_TEST: Joi.string()
-    .pattern(/^postgres(ql)?:\/\//)
-    .optional(),
   JWT_SECRET: Joi.string().min(16).required(),
   JWT_EXPIRES_IN: Joi.string()
     .pattern(/^\d+(s|m|h|d)$/)
@@ -19,4 +16,9 @@ export const envValidationSchema = Joi.object({
   JWT_REFRESH_EXPIRES_IN: Joi.string()
     .pattern(/^\d+(s|m|h|d)$/)
     .required(),
+  SMTP_HOST: Joi.string().optional(),
+  SMTP_PORT: Joi.number().port().optional(),
+  SMTP_USER: Joi.string().optional(),
+  SMTP_PASS: Joi.string().optional(),
+  SMTP_FROM: Joi.string().optional(),
 });

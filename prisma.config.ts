@@ -3,7 +3,7 @@ import { defineConfig, env } from 'prisma/config';
 // Chỉ nạp .env ở local/dev. Production nhận biến từ Docker/platform.
 if (process.env.NODE_ENV !== 'production') {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  require('dotenv').config();
+  require('dotenv').config({ path: '.env' });
 }
 
 export default defineConfig({

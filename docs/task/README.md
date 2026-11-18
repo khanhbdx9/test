@@ -22,15 +22,22 @@ Mỗi module một thư mục. `database/` là từng bảng. `feature/` là t�
 | 15 | product | Hình ảnh | product_images | Xong |
 | 16 | product | Biến thể | product_variants | Xong |
 | 16.1 | product | Sản phẩm công khai | products | Xong |
-| 17 | posts | Danh mục bài viết | post_categories | Chưa làm |
-| 18 | posts | Bài viết | posts | Chưa làm |
-| 19 | themes | Giao diện | themes | Chưa làm |
-| 20 | banners | Banner | banners | Chưa làm |
+| 17 | posts | Danh mục bài viết | post_categories | Bỏ qua |
+| 18 | posts | Bài viết HTML CKEditor + landing | posts | Xong |
+| 19 | themes | Giao diện | themes | Xong |
+| 20 | banners | Banner | banners | Xong |
+| 20.1 | public | Storefront khách hàng | — | Xong |
+| 20.2 | public | Lọc storefront (`POST /public/filter`) | — | Xong |
 | 21 | customers | Hồ sơ | customers | Chưa làm |
 | 22 | customers | Địa chỉ | customer_addresses | Chưa làm |
-| 23 | orders | Tạo đơn | orders, order_items | Chưa làm |
-| 24 | orders | Trạng thái | order_status_histories | Chưa làm |
+| 23 | orders | Tạo đơn (đơn giản) | orders | Xong |
+| 23.1 | orders / mail | Email đơn mới (`EMAIL_NOTIFICATION`, nhiều `;`) | system_configs | Xong |
+| 23.2 | notifications | Thông báo đơn mới in-app | notifications | Xong |
+| 24 | orders | Trạng thái (đơn giản) | orders | Xong |
 | 25 | customers | Lịch sử mua | — | Chưa làm |
 | 26 | reports | Doanh thu | — | Chưa làm |
 | 27 | uploads | Upload ảnh | — | Xong |
 | 28 | audit-logs | Nhật ký | audit_logs | Chưa làm |
+| 29 | system-configs | CRUD cấu hình | system_configs | Xong |
+
+Module đã build chi tiết: `.cursor/rules/built-modules.mdc`.

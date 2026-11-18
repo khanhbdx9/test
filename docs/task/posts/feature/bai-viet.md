@@ -1,17 +1,29 @@
 # Bài viết
 
 - Thứ tự: 18
-- Trạng thái: Chưa làm
+- Trạng thái: Xong
 - Module: posts
 - Database: `database/posts.md`
-- Phụ thuộc: `feature/danh-muc.md`
 
-## API
+## API admin
 
-`GET|POST /api/v1/posts`, `GET|PATCH|DELETE /api/v1/posts/:id`
+`GET|POST /api/v1/posts`, `GET|PATCH|DELETE /api/v1/posts/:id`, `PATCH /api/v1/posts/:id/publish`
 
-Xuất bản dùng `posts.publish`. Còn lại dùng `posts.view|create|update|delete`.
+Quyền: `posts.view|create|update|delete|publish`.
 
-## Ngoài phạm vi
+| Field | Ghi chú |
+|---|---|
+| `content` | HTML từ CKEditor |
+| `showOnLanding` | boolean, mặc định `false` — đánh dấu hiển thị trên landing |
+| (không có) | danh mục bài viết — đã bỏ |
 
-Theme. Banner.
+Admin list hỗ trợ filter `search`, `status`, `showOnLanding`.
+
+## API public
+
+- `GET /api/v1/public/posts`
+  - `search`: lọc theo **tên** bài viết
+  - `sortCreated`: `asc` \| `desc` (mặc định `desc`)
+  - `landing`: mặc định `false` → mọi bài `PUBLISHED`; `true` → chỉ bài `showOnLanding = true`
+- `GET /api/v1/public/posts/:slug`
+- `GET /api/v1/public/posts/:slug/related` — bài liên quan (khớp từ khóa tiêu đề; fallback bài published mới nhất), phân trang `page`/`limit`

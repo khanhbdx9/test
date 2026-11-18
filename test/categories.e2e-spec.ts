@@ -5,7 +5,6 @@ import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/app.setup';
 import { MESSAGES } from '../src/common/constants/messages';
 import { PrismaService } from '../src/database/prisma/prisma.service';
-import { prepareTestDatabase } from './prepare-database';
 
 interface CategoryItem {
   id: string;
@@ -25,8 +24,6 @@ describe('Categories (e2e)', () => {
   const suffix = Date.now().toString();
 
   beforeAll(async () => {
-    prepareTestDatabase();
-
     const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();

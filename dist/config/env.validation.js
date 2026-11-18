@@ -13,9 +13,6 @@ exports.envValidationSchema = joi_1.default.object({
     DATABASE_URL: joi_1.default.string()
         .pattern(/^postgres(ql)?:\/\//)
         .required(),
-    DATABASE_URL_TEST: joi_1.default.string()
-        .pattern(/^postgres(ql)?:\/\//)
-        .optional(),
     JWT_SECRET: joi_1.default.string().min(16).required(),
     JWT_EXPIRES_IN: joi_1.default.string()
         .pattern(/^\d+(s|m|h|d)$/)
@@ -24,5 +21,10 @@ exports.envValidationSchema = joi_1.default.object({
     JWT_REFRESH_EXPIRES_IN: joi_1.default.string()
         .pattern(/^\d+(s|m|h|d)$/)
         .required(),
+    SMTP_HOST: joi_1.default.string().optional(),
+    SMTP_PORT: joi_1.default.number().port().optional(),
+    SMTP_USER: joi_1.default.string().optional(),
+    SMTP_PASS: joi_1.default.string().optional(),
+    SMTP_FROM: joi_1.default.string().optional(),
 });
 //# sourceMappingURL=env.validation.js.map

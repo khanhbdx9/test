@@ -9,16 +9,11 @@ API quản lý cửa hàng bánh sinh nhật. Phase 2 gồm xác thực JWT, ref
 
 ## Biến môi trường
 
-Local/dev dùng file `.env`. Production không dùng dotenv — inject biến môi trường qua Docker/platform.
-
-```bash
-cp .env.example .env
-```
+Chỉ dùng **một** file `.env` (git ignore). Production không đọc file — inject biến qua Docker/platform.
 
 | Biến | Mục đích |
 |---|---|
-| `DATABASE_URL` | PostgreSQL app (dev/prod). Deploy chỉ dùng biến này |
-| `DATABASE_URL_TEST` | PostgreSQL test (`cake_shop_test`). Chỉ local/CI, không set trên prod |
+| `DATABASE_URL` | PostgreSQL (Render). Dev/test/prod cùng biến này |
 | `JWT_SECRET` | Secret access token |
 | `JWT_EXPIRES_IN` | Thời hạn access token, ví dụ `15m` |
 | `JWT_REFRESH_SECRET` | Secret băm refresh token |
@@ -28,6 +23,11 @@ cp .env.example .env
 | `SEED_SUPER_ADMIN_NAME` | Tên tài khoản SUPER_ADMIN |
 | `PORT` | Cổng HTTP, mặc định `3000` |
 | `NODE_ENV` | `development`, `test` hoặc `production` |
+| `SMTP_HOST` | SMTP host (optional — thiếu thì bỏ qua gửi mail) |
+| `SMTP_PORT` | SMTP port, ví dụ `587` |
+| `SMTP_USER` | SMTP user |
+| `SMTP_PASS` | SMTP password |
+| `SMTP_FROM` | Địa chỉ From (mặc định dùng `SMTP_USER`) |
 
 ## Chạy local
 
@@ -52,29 +52,29 @@ npm run start:dev
 docker compose up --build
 ```
 
-Compose khởi động API và PostgreSQL 16. API trong container dùng host `postgres`.
+Compose chỉ chạy API; Postgres lấy từ `DATABASE_URL` trong `.env` (Render). Không còn service Postgres local.
 
 ## Prisma
-
-App / production (chỉ `DATABASE_URL`):
 
 ```bash
 npm run prisma:validate
 npm run prisma:generate
-npm run prisma:migrate          # local: tạo migration
-npm run prisma:migrate:deploy  # deploy/prod: apply migration
-npm run prisma:seed
+npm run prisma:migrate          # tạo migration
+npm run prisma:migrate:deploy  # apply migration
+npm run prisma:seed            # RBAC + SUPER_ADMIN
+npm run prisma:seed:mock       # mock category + product (riêng)
 ```
 
-Test local (chỉ `DATABASE_URL_TEST`, không chạy trên prod):
+Chỉ một database (`DATABASE_URL`). Không tạo DB test riêng. Docker chạy `prisma migrate deploy` trong `docker/entrypoint.sh` trước khi start API.
+
+### Backup / restore data
 
 ```bash
-npm run prisma:test:prepare
+npm run db:export   # dump từ DATABASE_URL → backups/*.sql
+TARGET_DATABASE_URL='...' npm run db:import -- backups/data-....sql
 ```
 
-Docker prod chạy `prisma migrate deploy` trong `docker/entrypoint.sh` trước khi start API. Database test không được tạo trên production.
-
-Seed tạo permission, 5 role hệ thống (`SUPER_ADMIN`, `ADMIN`, `MANAGER`, `STAFF`, `CONTENT_EDITOR`) và tài khoản SUPER_ADMIN. Role hệ thống không sửa hoặc xóa được. Refresh token được lưu dạng hash, xoay vòng khi làm mới và thu hồi khi đăng xuất.
+`prisma:seed` tạo permission, 5 role hệ thống và SUPER_ADMIN. `prisma:seed:mock` upsert danh mục/sản phẩm mẫu (không chạy trong seed mặc định). Role hệ thống không sửa hoặc xóa được.
 
 API quản trị: `/api/v1/users`, `/api/v1/roles`, `/api/v1/permissions`.
 

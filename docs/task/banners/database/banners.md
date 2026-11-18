@@ -1,6 +1,6 @@
 # banners
 
-- Trạng thái: Chưa làm
+- Trạng thái: Xong
 - Module: banners
 
 | Cột | Kiểu | Ràng buộc |

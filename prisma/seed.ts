@@ -5,7 +5,7 @@ import { PrismaClient } from '../src/generated/prisma/client';
 // Chỉ nạp .env ở local/dev. Production dùng biến môi trường inject sẵn.
 if (process.env.NODE_ENV !== 'production') {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  require('dotenv').config();
+  require('dotenv').config({ path: '.env' });
 }
 
 const ACTIONS: Record<string, string> = {
@@ -40,6 +40,10 @@ const PERMISSIONS: ReadonlyArray<readonly [string, string]> = [
   ['orders', 'create'],
   ['orders', 'update'],
   ['orders', 'cancel'],
+  ['system-configs', 'view'],
+  ['system-configs', 'create'],
+  ['system-configs', 'update'],
+  ['system-configs', 'delete'],
   ['reports', 'view'],
   ['reports', 'export'],
   ['banners', 'view'],
@@ -51,6 +55,7 @@ const PERMISSIONS: ReadonlyArray<readonly [string, string]> = [
   ['posts', 'update'],
   ['posts', 'delete'],
   ['posts', 'publish'],
+  ['notifications', 'view'],
 ];
 
 const ROLES = [
@@ -102,6 +107,7 @@ const ROLE_PERMISSIONS: Record<string, readonly string[] | '*'> = {
     'banners.view',
     'themes.view',
     'posts.view',
+    'notifications.view',
   ],
   STAFF: [
     'orders.view',
@@ -110,6 +116,7 @@ const ROLE_PERMISSIONS: Record<string, readonly string[] | '*'> = {
     'orders.cancel',
     'products.view',
     'categories.view',
+    'notifications.view',
   ],
   CONTENT_EDITOR: [
     'posts.view',
@@ -211,6 +218,20 @@ async function main(): Promise<void> {
       },
     });
   }
+
+  await prisma.systemConfig.upsert({
+    where: { key: 'EMAIL_NOTIFICATION' },
+    update: {
+      description:
+        'Email nhận thông báo đơn hàng mới; nhiều địa chỉ phân tách bằng ;',
+    },
+    create: {
+      key: 'EMAIL_NOTIFICATION',
+      value: email,
+      description:
+        'Email nhận thông báo đơn hàng mới; nhiều địa chỉ phân tách bằng ;',
+    },
+  });
 }
 
 main()

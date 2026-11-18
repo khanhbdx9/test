@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.defineExtension = exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.ProductVariantScalarFieldEnum = exports.ProductImageScalarFieldEnum = exports.ProductScalarFieldEnum = exports.CategoryScalarFieldEnum = exports.RefreshTokenScalarFieldEnum = exports.RolePermissionScalarFieldEnum = exports.PermissionScalarFieldEnum = exports.RoleScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
+exports.defineExtension = exports.JsonNullValueFilter = exports.NullsOrder = exports.QueryMode = exports.NullableJsonNullValueInput = exports.JsonNullValueInput = exports.SortOrder = exports.PostScalarFieldEnum = exports.NotificationScalarFieldEnum = exports.BannerScalarFieldEnum = exports.ThemeScalarFieldEnum = exports.SystemConfigScalarFieldEnum = exports.OrderScalarFieldEnum = exports.ProductVariantScalarFieldEnum = exports.ProductImageScalarFieldEnum = exports.ProductScalarFieldEnum = exports.CategoryScalarFieldEnum = exports.RefreshTokenScalarFieldEnum = exports.RolePermissionScalarFieldEnum = exports.PermissionScalarFieldEnum = exports.RoleScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/client"));
 exports.PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError;
 exports.PrismaClientUnknownRequestError = runtime.PrismaClientUnknownRequestError;
@@ -68,7 +68,13 @@ exports.ModelName = {
     Category: 'Category',
     Product: 'Product',
     ProductImage: 'ProductImage',
-    ProductVariant: 'ProductVariant'
+    ProductVariant: 'ProductVariant',
+    Order: 'Order',
+    SystemConfig: 'SystemConfig',
+    Theme: 'Theme',
+    Banner: 'Banner',
+    Notification: 'Notification',
+    Post: 'Post'
 };
 exports.TransactionIsolationLevel = runtime.makeStrictEnum({
     ReadUncommitted: 'ReadUncommitted',
@@ -175,9 +181,96 @@ exports.ProductVariantScalarFieldEnum = {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
 };
+exports.OrderScalarFieldEnum = {
+    id: 'id',
+    email: 'email',
+    phone: 'phone',
+    shippingAddress: 'shippingAddress',
+    fullName: 'fullName',
+    note: 'note',
+    paymentMethod: 'paymentMethod',
+    paymentImageUrl: 'paymentImageUrl',
+    status: 'status',
+    deliveryDate: 'deliveryDate',
+    deliveryTime: 'deliveryTime',
+    productIds: 'productIds',
+    totalAmount: 'totalAmount',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.SystemConfigScalarFieldEnum = {
+    id: 'id',
+    key: 'key',
+    value: 'value',
+    description: 'description',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.ThemeScalarFieldEnum = {
+    id: 'id',
+    name: 'name',
+    code: 'code',
+    description: 'description',
+    config: 'config',
+    previewUrl: 'previewUrl',
+    isActive: 'isActive',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.BannerScalarFieldEnum = {
+    id: 'id',
+    title: 'title',
+    desktopImageUrl: 'desktopImageUrl',
+    mobileImageUrl: 'mobileImageUrl',
+    link: 'link',
+    position: 'position',
+    sortOrder: 'sortOrder',
+    startsAt: 'startsAt',
+    endsAt: 'endsAt',
+    isActive: 'isActive',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.NotificationScalarFieldEnum = {
+    id: 'id',
+    userId: 'userId',
+    type: 'type',
+    title: 'title',
+    message: 'message',
+    link: 'link',
+    metadata: 'metadata',
+    isRead: 'isRead',
+    readAt: 'readAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.PostScalarFieldEnum = {
+    id: 'id',
+    authorId: 'authorId',
+    title: 'title',
+    slug: 'slug',
+    thumbnailUrl: 'thumbnailUrl',
+    content: 'content',
+    excerpt: 'excerpt',
+    status: 'status',
+    showOnLanding: 'showOnLanding',
+    publishedAt: 'publishedAt',
+    seoTitle: 'seoTitle',
+    seoDescription: 'seoDescription',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    deletedAt: 'deletedAt'
+};
 exports.SortOrder = {
     asc: 'asc',
     desc: 'desc'
+};
+exports.JsonNullValueInput = {
+    JsonNull: exports.JsonNull
+};
+exports.NullableJsonNullValueInput = {
+    DbNull: exports.DbNull,
+    JsonNull: exports.JsonNull
 };
 exports.QueryMode = {
     default: 'default',
@@ -186,6 +279,11 @@ exports.QueryMode = {
 exports.NullsOrder = {
     first: 'first',
     last: 'last'
+};
+exports.JsonNullValueFilter = {
+    DbNull: exports.DbNull,
+    JsonNull: exports.JsonNull,
+    AnyNull: exports.AnyNull
 };
 exports.defineExtension = runtime.Extensions.defineExtension;
 //# sourceMappingURL=prismaNamespace.js.map

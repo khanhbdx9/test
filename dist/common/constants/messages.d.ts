@@ -32,5 +32,16 @@ export declare const MESSAGES: {
     readonly FILE_TOO_LARGE: "Tổng dung lượng ảnh vượt quá 10MB";
     readonly DUPLICATE_VARIANT_SKU: "SKU biến thể bị trùng";
     readonly UPLOAD_FOLDER_INVALID: "Folder không hợp lệ";
+    readonly DELIVERY_DATE_REQUIRED: "Ngày giao hàng bắt buộc khi thanh toán chuyển khoản";
+    readonly CONFIG_KEY_IN_USE: "Key cấu hình đã tồn tại";
+    readonly PRODUCTS_REQUIRED: "Đơn hàng cần ít nhất một sản phẩm";
+    readonly PRODUCT_NOT_FOUND: "Một hoặc nhiều sản phẩm không hợp lệ";
+    readonly THEME_CODE_IN_USE: "Mã theme đã tồn tại";
+    readonly THEME_NOT_FOUND: "Không tìm thấy theme";
+    readonly BANNER_NOT_FOUND: "Không tìm thấy banner";
+    readonly NOTIFICATION_NOT_FOUND: "Không tìm thấy thông báo";
+    readonly POST_SLUG_IN_USE: "Slug bài viết đã tồn tại";
+    readonly POST_NOT_FOUND: "Không tìm thấy bài viết";
+    readonly SEARCH_QUERY_REQUIRED: "Từ khóa tìm kiếm không được để trống";
 };
 export declare function messageForStatus(statusCode: number): string;

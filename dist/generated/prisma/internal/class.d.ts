@@ -57,5 +57,23 @@ export interface PrismaClient<in LogOpts extends Prisma.LogLevel = never, in out
     get productVariant(): Prisma.ProductVariantDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;
+    get order(): Prisma.OrderDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get systemConfig(): Prisma.SystemConfigDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get theme(): Prisma.ThemeDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get banner(): Prisma.BannerDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get notification(): Prisma.NotificationDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
+    get post(): Prisma.PostDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
 }
 export declare function getPrismaClientClass(): PrismaClientConstructor;

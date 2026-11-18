@@ -1,6 +1,6 @@
 # themes
 
-- Trạng thái: Chưa làm
+- Trạng thái: Xong
 - Module: themes
 
 | Cột | Kiểu | Ràng buộc |

@@ -1,24 +1,36 @@
 # orders
 
-- Trạng thái: Chưa làm
+- Trạng thái: Xong
 - Module: orders
+- Phase: đơn giản (chưa có order_items riêng, customers, lịch sử trạng thái)
 
 | Cột | Kiểu | Ràng buộc |
 |---|---|---|
 | id | uuid | PK |
-| code | string | unique |
-| customer_id | uuid | FK customers, onDelete Restrict, index |
-| idempotency_key | string | unique |
-| recipient_name | string | |
-| recipient_phone | string | |
-| address | string | |
-| receive_at | timestamptz | null |
+| email | string | null, index |
+| phone | string | bắt buộc, index |
+| shipping_address | string | bắt buộc |
+| full_name | string | null |
 | note | text | null |
-| total | decimal(12,2) | backend tính |
-| payment_method | string | |
-| payment_status | PaymentStatus | UNPAID, PAID, index |
-| status | OrderStatus | index |
-| created_at | timestamptz | |
-| updated_at | timestamptz | |
+| payment_method | PaymentMethod | `AT_STORE`, `BANK_TRANSFER`, index |
+| payment_image_url | string | null — ảnh KH chuyển khoản |
+| status | OrderStatus | mặc định `PENDING_CONFIRMATION`, index |
+| delivery_date | date | bắt buộc khi `BANK_TRANSFER`, index |
+| delivery_time | string | null — khung/giờ giao, index |
+| product_ids | uuid[] | list id sản phẩm FE gửi; backend lấy giá từ DB |
+| total_amount | decimal(12,2) | backend tính từ giá hiệu lực (salePrice ?? price) |
+| created_at | timestamptz | hệ thống |
+| updated_at | timestamptz | hệ thống |
 
-Enum `OrderStatus`: `PENDING`, `CONFIRMED`, `PREPARING`, `READY`, `SHIPPING`, `COMPLETED`, `CANCELLED`.
+Enum `PaymentMethod`:
+
+- `AT_STORE` — tại cửa hàng
+- `BANK_TRANSFER` — chuyển khoản
+
+Enum `OrderStatus`:
+
+- `PENDING_CONFIRMATION` — chờ xác nhận
+- `REJECTED` — từ chối
+- `CONFIRMED` — xác nhận
+- `NEED_CALLBACK` — cần liên hệ lại
+- `COMPLETED` — hoàn thành

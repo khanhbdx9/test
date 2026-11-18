@@ -21,10 +21,17 @@ const configuration_1 = require("./config/configuration");
 const env_validation_1 = require("./config/env.validation");
 const prisma_module_1 = require("./database/prisma/prisma.module");
 const auth_module_1 = require("./modules/auth/auth.module");
+const banners_module_1 = require("./modules/banners/banners.module");
 const categories_module_1 = require("./modules/categories/categories.module");
 const health_module_1 = require("./modules/health/health.module");
+const notifications_module_1 = require("./modules/notifications/notifications.module");
+const orders_module_1 = require("./modules/orders/orders.module");
 const permissions_module_1 = require("./modules/permissions/permissions.module");
+const posts_module_1 = require("./modules/posts/posts.module");
 const products_module_1 = require("./modules/products/products.module");
+const public_module_1 = require("./modules/public/public.module");
+const system_configs_module_1 = require("./modules/system-configs/system-configs.module");
+const themes_module_1 = require("./modules/themes/themes.module");
 const uploads_module_1 = require("./modules/uploads/uploads.module");
 const roles_module_1 = require("./modules/roles/roles.module");
 const users_module_1 = require("./modules/users/users.module");
@@ -36,6 +43,8 @@ exports.AppModule = AppModule = __decorate([
         imports: [
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
+                envFilePath: '.env',
+                ignoreEnvFile: process.env.NODE_ENV === 'production',
                 load: [configuration_1.configuration],
                 validationSchema: env_validation_1.envValidationSchema,
             }),
@@ -70,6 +79,13 @@ exports.AppModule = AppModule = __decorate([
             auth_module_1.AuthModule,
             categories_module_1.CategoriesModule,
             products_module_1.ProductsModule,
+            orders_module_1.OrdersModule,
+            notifications_module_1.NotificationsModule,
+            posts_module_1.PostsModule,
+            themes_module_1.ThemesModule,
+            banners_module_1.BannersModule,
+            public_module_1.PublicModule,
+            system_configs_module_1.SystemConfigsModule,
             uploads_module_1.UploadsModule,
             users_module_1.UsersModule,
             roles_module_1.RolesModule,

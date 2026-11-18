@@ -8,5 +8,12 @@ export interface AppConfiguration {
         refreshSecret: string;
         refreshExpiresIn: string;
     };
+    mail: {
+        host?: string;
+        port?: number;
+        user?: string;
+        pass?: string;
+        from?: string;
+    };
 }
 export declare const configuration: () => AppConfiguration;

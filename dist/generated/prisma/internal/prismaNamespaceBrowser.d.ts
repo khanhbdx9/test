@@ -20,6 +20,12 @@ export declare const ModelName: {
     readonly Product: "Product";
     readonly ProductImage: "ProductImage";
     readonly ProductVariant: "ProductVariant";
+    readonly Order: "Order";
+    readonly SystemConfig: "SystemConfig";
+    readonly Theme: "Theme";
+    readonly Banner: "Banner";
+    readonly Notification: "Notification";
+    readonly Post: "Post";
 };
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
 export declare const TransactionIsolationLevel: {
@@ -137,11 +143,106 @@ export declare const ProductVariantScalarFieldEnum: {
     readonly updatedAt: "updatedAt";
 };
 export type ProductVariantScalarFieldEnum = (typeof ProductVariantScalarFieldEnum)[keyof typeof ProductVariantScalarFieldEnum];
+export declare const OrderScalarFieldEnum: {
+    readonly id: "id";
+    readonly email: "email";
+    readonly phone: "phone";
+    readonly shippingAddress: "shippingAddress";
+    readonly fullName: "fullName";
+    readonly note: "note";
+    readonly paymentMethod: "paymentMethod";
+    readonly paymentImageUrl: "paymentImageUrl";
+    readonly status: "status";
+    readonly deliveryDate: "deliveryDate";
+    readonly deliveryTime: "deliveryTime";
+    readonly productIds: "productIds";
+    readonly totalAmount: "totalAmount";
+    readonly createdAt: "createdAt";
+    readonly updatedAt: "updatedAt";
+};
+export type OrderScalarFieldEnum = (typeof OrderScalarFieldEnum)[keyof typeof OrderScalarFieldEnum];
+export declare const SystemConfigScalarFieldEnum: {
+    readonly id: "id";
+    readonly key: "key";
+    readonly value: "value";
+    readonly description: "description";
+    readonly createdAt: "createdAt";
+    readonly updatedAt: "updatedAt";
+};
+export type SystemConfigScalarFieldEnum = (typeof SystemConfigScalarFieldEnum)[keyof typeof SystemConfigScalarFieldEnum];
+export declare const ThemeScalarFieldEnum: {
+    readonly id: "id";
+    readonly name: "name";
+    readonly code: "code";
+    readonly description: "description";
+    readonly config: "config";
+    readonly previewUrl: "previewUrl";
+    readonly isActive: "isActive";
+    readonly createdAt: "createdAt";
+    readonly updatedAt: "updatedAt";
+};
+export type ThemeScalarFieldEnum = (typeof ThemeScalarFieldEnum)[keyof typeof ThemeScalarFieldEnum];
+export declare const BannerScalarFieldEnum: {
+    readonly id: "id";
+    readonly title: "title";
+    readonly desktopImageUrl: "desktopImageUrl";
+    readonly mobileImageUrl: "mobileImageUrl";
+    readonly link: "link";
+    readonly position: "position";
+    readonly sortOrder: "sortOrder";
+    readonly startsAt: "startsAt";
+    readonly endsAt: "endsAt";
+    readonly isActive: "isActive";
+    readonly createdAt: "createdAt";
+    readonly updatedAt: "updatedAt";
+};
+export type BannerScalarFieldEnum = (typeof BannerScalarFieldEnum)[keyof typeof BannerScalarFieldEnum];
+export declare const NotificationScalarFieldEnum: {
+    readonly id: "id";
+    readonly userId: "userId";
+    readonly type: "type";
+    readonly title: "title";
+    readonly message: "message";
+    readonly link: "link";
+    readonly metadata: "metadata";
+    readonly isRead: "isRead";
+    readonly readAt: "readAt";
+    readonly createdAt: "createdAt";
+    readonly updatedAt: "updatedAt";
+};
+export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum];
+export declare const PostScalarFieldEnum: {
+    readonly id: "id";
+    readonly authorId: "authorId";
+    readonly title: "title";
+    readonly slug: "slug";
+    readonly thumbnailUrl: "thumbnailUrl";
+    readonly content: "content";
+    readonly excerpt: "excerpt";
+    readonly status: "status";
+    readonly showOnLanding: "showOnLanding";
+    readonly publishedAt: "publishedAt";
+    readonly seoTitle: "seoTitle";
+    readonly seoDescription: "seoDescription";
+    readonly createdAt: "createdAt";
+    readonly updatedAt: "updatedAt";
+    readonly deletedAt: "deletedAt";
+};
+export type PostScalarFieldEnum = (typeof PostScalarFieldEnum)[keyof typeof PostScalarFieldEnum];
 export declare const SortOrder: {
     readonly asc: "asc";
     readonly desc: "desc";
 };
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder];
+export declare const JsonNullValueInput: {
+    readonly JsonNull: import("@prisma/client-runtime-utils").JsonNullClass;
+};
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput];
+export declare const NullableJsonNullValueInput: {
+    readonly DbNull: import("@prisma/client-runtime-utils").DbNullClass;
+    readonly JsonNull: import("@prisma/client-runtime-utils").JsonNullClass;
+};
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput];
 export declare const QueryMode: {
     readonly default: "default";
     readonly insensitive: "insensitive";
@@ -152,3 +253,9 @@ export declare const NullsOrder: {
     readonly last: "last";
 };
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder];
+export declare const JsonNullValueFilter: {
+    readonly DbNull: import("@prisma/client-runtime-utils").DbNullClass;
+    readonly JsonNull: import("@prisma/client-runtime-utils").JsonNullClass;
+    readonly AnyNull: import("@prisma/client-runtime-utils").AnyNullClass;
+};
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter];

@@ -32,6 +32,18 @@ export const MESSAGES = {
   FILE_TOO_LARGE: 'Tổng dung lượng ảnh vượt quá 10MB',
   DUPLICATE_VARIANT_SKU: 'SKU biến thể bị trùng',
   UPLOAD_FOLDER_INVALID: 'Folder không hợp lệ',
+  DELIVERY_DATE_REQUIRED:
+    'Ngày giao hàng bắt buộc khi thanh toán chuyển khoản',
+  CONFIG_KEY_IN_USE: 'Key cấu hình đã tồn tại',
+  PRODUCTS_REQUIRED: 'Đơn hàng cần ít nhất một sản phẩm',
+  PRODUCT_NOT_FOUND: 'Một hoặc nhiều sản phẩm không hợp lệ',
+  THEME_CODE_IN_USE: 'Mã theme đã tồn tại',
+  THEME_NOT_FOUND: 'Không tìm thấy theme',
+  BANNER_NOT_FOUND: 'Không tìm thấy banner',
+  NOTIFICATION_NOT_FOUND: 'Không tìm thấy thông báo',
+  POST_SLUG_IN_USE: 'Slug bài viết đã tồn tại',
+  POST_NOT_FOUND: 'Không tìm thấy bài viết',
+  SEARCH_QUERY_REQUIRED: 'Từ khóa tìm kiếm không được để trống',
 } as const;
 
 const STATUS_MESSAGES: Record<number, string> = {

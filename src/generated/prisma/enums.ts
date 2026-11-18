@@ -40,3 +40,37 @@ export const VariantStatus = {
 } as const
 
 export type VariantStatus = (typeof VariantStatus)[keyof typeof VariantStatus]
+
+
+export const PaymentMethod = {
+  AT_STORE: 'AT_STORE',
+  BANK_TRANSFER: 'BANK_TRANSFER'
+} as const
+
+export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod]
+
+
+export const OrderStatus = {
+  PENDING_CONFIRMATION: 'PENDING_CONFIRMATION',
+  REJECTED: 'REJECTED',
+  CONFIRMED: 'CONFIRMED',
+  NEED_CALLBACK: 'NEED_CALLBACK',
+  COMPLETED: 'COMPLETED'
+} as const
+
+export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus]
+
+
+export const NotificationType = {
+  ORDER_CREATED: 'ORDER_CREATED'
+} as const
+
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]
+
+
+export const PostStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED'
+} as const
+
+export type PostStatus = (typeof PostStatus)[keyof typeof PostStatus]

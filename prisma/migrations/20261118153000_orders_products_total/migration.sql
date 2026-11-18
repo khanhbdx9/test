@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "orders"
+ADD COLUMN "product_ids" UUID[] NOT NULL DEFAULT ARRAY[]::UUID[],
+ADD COLUMN "total_amount" DECIMAL(12,2) NOT NULL DEFAULT 0;

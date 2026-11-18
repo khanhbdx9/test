@@ -8,6 +8,8 @@ const configuration = () => {
     const jwtExpiresIn = process.env.JWT_EXPIRES_IN;
     const refreshSecret = process.env.JWT_REFRESH_SECRET;
     const refreshExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN;
+    const smtpPortRaw = process.env.SMTP_PORT;
+    const smtpPort = smtpPortRaw ? Number(smtpPortRaw) : undefined;
     if (!databaseUrl ||
         !jwtSecret ||
         !jwtExpiresIn ||
@@ -24,6 +26,13 @@ const configuration = () => {
             expiresIn: jwtExpiresIn,
             refreshSecret,
             refreshExpiresIn,
+        },
+        mail: {
+            host: process.env.SMTP_HOST?.trim() || undefined,
+            port: smtpPort !== undefined && !Number.isNaN(smtpPort) ? smtpPort : undefined,
+            user: process.env.SMTP_USER?.trim() || undefined,
+            pass: process.env.SMTP_PASS || undefined,
+            from: process.env.SMTP_FROM?.trim() || undefined,
         },
     };
 };

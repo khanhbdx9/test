@@ -12,10 +12,17 @@ import { configuration } from './config/configuration';
 import { envValidationSchema } from './config/env.validation';
 import { PrismaModule } from './database/prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { BannersModule } from './modules/banners/banners.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { HealthModule } from './modules/health/health.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { OrdersModule } from './modules/orders/orders.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
+import { PostsModule } from './modules/posts/posts.module';
 import { ProductsModule } from './modules/products/products.module';
+import { PublicModule } from './modules/public/public.module';
+import { SystemConfigsModule } from './modules/system-configs/system-configs.module';
+import { ThemesModule } from './modules/themes/themes.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { UsersModule } from './modules/users/users.module';
@@ -24,6 +31,7 @@ import { UsersModule } from './modules/users/users.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '.env',
       ignoreEnvFile: process.env.NODE_ENV === 'production',
       load: [configuration],
       validationSchema: envValidationSchema,
@@ -61,6 +69,13 @@ import { UsersModule } from './modules/users/users.module';
     AuthModule,
     CategoriesModule,
     ProductsModule,
+    OrdersModule,
+    NotificationsModule,
+    PostsModule,
+    ThemesModule,
+    BannersModule,
+    PublicModule,
+    SystemConfigsModule,
     UploadsModule,
     UsersModule,
     RolesModule,

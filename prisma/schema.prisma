@@ -22,6 +22,8 @@ model User {
   roleId        String         @map("role_id") @db.Uuid
   role          Role           @relation(fields: [roleId], references: [id], onDelete: Restrict)
   refreshTokens RefreshToken[]
+  notifications Notification[]
+  posts         Post[]
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
   deletedAt     DateTime?      @map("deleted_at")
@@ -193,4 +195,147 @@ model ProductVariant {
   @@index([productId])
   @@index([status])
   @@map("product_variants")
+}
+
+enum PaymentMethod {
+  AT_STORE
+  BANK_TRANSFER
+}
+
+enum OrderStatus {
+  PENDING_CONFIRMATION
+  REJECTED
+  CONFIRMED
+  NEED_CALLBACK
+  COMPLETED
+}
+
+model Order {
+  id               String        @id @default(uuid()) @db.Uuid
+  email            String?
+  phone            String
+  shippingAddress  String        @map("shipping_address")
+  fullName         String?       @map("full_name")
+  note             String?       @db.Text
+  paymentMethod    PaymentMethod @map("payment_method")
+  paymentImageUrl  String?       @map("payment_image_url")
+  status           OrderStatus   @default(PENDING_CONFIRMATION)
+  deliveryDate     DateTime?     @map("delivery_date") @db.Date
+  deliveryTime     String?       @map("delivery_time")
+  productIds       String[]      @map("product_ids") @db.Uuid
+  totalAmount      Decimal       @map("total_amount") @db.Decimal(12, 2)
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  @@index([email])
+  @@index([phone])
+  @@index([paymentMethod])
+  @@index([status])
+  @@index([deliveryDate])
+  @@index([deliveryTime])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model SystemConfig {
+  id          String   @id @default(uuid()) @db.Uuid
+  key         String   @unique
+  value       String   @db.Text
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([key])
+  @@map("system_configs")
+}
+
+model Theme {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  code        String   @unique
+  description String?  @db.Text
+  config      Json
+  previewUrl  String?  @map("preview_url")
+  isActive    Boolean  @default(false) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([isActive])
+  @@map("themes")
+}
+
+model Banner {
+  id              String    @id @default(uuid()) @db.Uuid
+  title           String
+  desktopImageUrl String    @map("desktop_image_url")
+  mobileImageUrl  String?   @map("mobile_image_url")
+  link            String?
+  position        String
+  sortOrder       Int       @default(0) @map("sort_order")
+  startsAt        DateTime? @map("starts_at")
+  endsAt          DateTime? @map("ends_at")
+  isActive        Boolean   @default(true) @map("is_active")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@index([position])
+  @@index([isActive])
+  @@index([sortOrder])
+  @@map("banners")
+}
+
+enum NotificationType {
+  ORDER_CREATED
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String           @db.Text
+  link      String?
+  metadata  Json?
+  isRead    Boolean          @default(false) @map("is_read")
+  readAt    DateTime?        @map("read_at")
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([type])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model Post {
+  id             String     @id @default(uuid()) @db.Uuid
+  authorId       String     @map("author_id") @db.Uuid
+  author         User       @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  title          String
+  slug           String     @unique
+  thumbnailUrl   String?    @map("thumbnail_url")
+  content        String     @db.Text
+  excerpt        String?    @db.Text
+  status         PostStatus @default(DRAFT)
+  showOnLanding  Boolean    @default(false) @map("show_on_landing")
+  publishedAt    DateTime?  @map("published_at")
+  seoTitle       String?    @map("seo_title")
+  seoDescription String?    @map("seo_description")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+  deletedAt      DateTime?  @map("deleted_at")
+
+  @@index([authorId])
+  @@index([status])
+  @@index([deletedAt])
+  @@index([publishedAt])
+  @@index([showOnLanding])
+  @@map("posts")
 }

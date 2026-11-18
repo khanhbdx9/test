@@ -62,3 +62,33 @@ export type ProductImage = Prisma.ProductImageModel
  * 
  */
 export type ProductVariant = Prisma.ProductVariantModel
+/**
+ * Model Order
+ * 
+ */
+export type Order = Prisma.OrderModel
+/**
+ * Model SystemConfig
+ * 
+ */
+export type SystemConfig = Prisma.SystemConfigModel
+/**
+ * Model Theme
+ * 
+ */
+export type Theme = Prisma.ThemeModel
+/**
+ * Model Banner
+ * 
+ */
+export type Banner = Prisma.BannerModel
+/**
+ * Model Notification
+ * 
+ */
+export type Notification = Prisma.NotificationModel
+/**
+ * Model Post
+ * 
+ */
+export type Post = Prisma.PostModel
