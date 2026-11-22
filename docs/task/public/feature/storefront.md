@@ -9,7 +9,9 @@
 Gom toàn bộ API public vào một controller (`PublicStorefrontController`), tag Swagger `Public`:
 
 - `GET /api/v1/public/categories`, `GET /api/v1/public/categories/:id`
+- `GET /api/v1/public/categories/:categorySlug/products` — sản phẩm theo slug danh mục, phân trang + `search`
 - `GET /api/v1/public/products`, `GET /api/v1/public/products/:categorySlug/:productSlug`, `.../related`
+- `GET /api/v1/public/products/:categorySlug/related-other` — tối đa 10 SP category khác, mỗi category ≥1 nếu có
 - `POST /api/v1/public/filter` — xem `feature/tim-kiem.md`
 - `POST /api/v1/public/orders/create`
 - `GET /api/v1/public/theme`

@@ -336,11 +336,29 @@ describe('Products (e2e)', () => {
         price: '120000',
         status: 'PUBLISHED',
       });
+    const otherCategory = await http()
+      .post('/api/v1/categories')
+      .set(bearer())
+      .send({ name: `Public Other Cat ${suffix}` });
+    expect(otherCategory.status).toBe(201);
+    categoryIds.push(otherCategory.body.data.id as string);
+    const otherProduct = await http()
+      .post('/api/v1/products')
+      .set(bearer())
+      .send({
+        categoryId: otherCategory.body.data.id,
+        sku: `PUB-OTHER-${suffix}`,
+        name: `Bánh khác danh mục ${suffix}`,
+        slug: `banh-khac-danh-muc-${suffix}`,
+        price: '130000',
+        status: 'PUBLISHED',
+      });
     productIds.push(
       older.body.data.id as string,
       featured.body.data.id as string,
       draft.body.data.id as string,
       related.body.data.id as string,
+      otherProduct.body.data.id as string,
     );
 
     const listed = await http()
@@ -357,6 +375,15 @@ describe('Products (e2e)', () => {
     );
     expect(items.map((item) => item.id)).not.toContain(draft.body.data.id);
     expect(items[0].id).toBe(featured.body.data.id);
+
+    const byCategory = await http()
+      .get(`/api/v1/public/categories/${category.slug}/products`)
+      .query({ search: `nổi bật ${suffix}`, limit: 20 });
+    expect(byCategory.status).toBe(200);
+    const byCategoryItems = byCategory.body.data.items as ProductItem[];
+    expect(byCategoryItems.map((item) => item.id)).toEqual([
+      featured.body.data.id,
+    ]);
 
     const detail = await http().get(
       `/api/v1/public/products/${category.slug}/banh-noi-bat-${suffix}`,
@@ -379,6 +406,22 @@ describe('Products (e2e)', () => {
     const relatedItems = relatedList.body.data.items as ProductItem[];
     expect(relatedItems.map((item) => item.id)).toContain(related.body.data.id);
     expect(relatedItems.map((item) => item.id)).not.toContain(
+      featured.body.data.id,
+    );
+
+    const relatedOther = await http().get(
+      `/api/v1/public/products/${category.slug}/related-other`,
+    );
+    expect(relatedOther.status).toBe(200);
+    const relatedOtherItems = relatedOther.body.data.items as ProductItem[];
+    expect(relatedOtherItems.length).toBeLessThanOrEqual(10);
+    expect(relatedOtherItems.map((item) => item.id)).toContain(
+      otherProduct.body.data.id,
+    );
+    expect(relatedOtherItems.map((item) => item.id)).not.toContain(
+      related.body.data.id,
+    );
+    expect(relatedOtherItems.map((item) => item.id)).not.toContain(
       featured.body.data.id,
     );
   });

@@ -34,6 +34,8 @@ export const MESSAGES = {
   UPLOAD_FOLDER_INVALID: 'Folder không hợp lệ',
   DELIVERY_DATE_REQUIRED:
     'Ngày giao hàng bắt buộc khi thanh toán chuyển khoản',
+  INVALID_CREATED_DATE_RANGE:
+    'Khoảng ngày createdFrom phải nhỏ hơn hoặc bằng createdTo',
   CONFIG_KEY_IN_USE: 'Key cấu hình đã tồn tại',
   PRODUCTS_REQUIRED: 'Đơn hàng cần ít nhất một sản phẩm',
   PRODUCT_NOT_FOUND: 'Một hoặc nhiều sản phẩm không hợp lệ',

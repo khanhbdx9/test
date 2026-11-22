@@ -34,6 +34,17 @@ export class QueryPublicProductDto extends PaginationQueryDto {
   isBestSeller?: boolean;
 }
 
+export class QueryPublicCategoryProductDto extends PaginationQueryDto {
+  @ApiPropertyOptional({ description: 'Tìm theo tên, SKU hoặc slug' })
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  search?: string;
+}
+
 export class QueryRelatedProductDto extends PaginationQueryDto {}
 
 function parseBoolean(value: unknown): unknown {

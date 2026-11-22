@@ -36,6 +36,7 @@ import {
 import { PostsService } from '../posts/posts.service';
 import { ProductResponseDto } from '../products/dto/product-response.dto';
 import {
+  QueryPublicCategoryProductDto,
   QueryPublicProductDto,
   QueryRelatedProductDto,
 } from '../products/dto/query-public-product.dto';
@@ -72,6 +73,24 @@ export class PublicStorefrontController {
     return this.categoriesService.findVisible(query);
   }
 
+  @Get('categories/:categorySlug/products')
+  @ResponseMessage(MESSAGES.FETCH_SUCCESS)
+  @ApiOperation({
+    summary:
+      'Danh sách sản phẩm theo categorySlug (phân trang, tìm kiếm tên/SKU/slug)',
+  })
+  @ApiStandardPaginatedResponse({
+    type: ProductResponseDto,
+    description: MESSAGES.FETCH_SUCCESS,
+  })
+  @ApiStandardErrorResponse()
+  findCategoryProducts(
+    @Param('categorySlug') categorySlug: string,
+    @Query() query: QueryPublicCategoryProductDto,
+  ) {
+    return this.productsService.findPublishedByCategory(categorySlug, query);
+  }
+
   @Get('categories/:id')
   @ResponseMessage(MESSAGES.FETCH_SUCCESS)
   @ApiOperation({ summary: 'Chi tiết danh mục đang hiển thị' })
@@ -96,6 +115,23 @@ export class PublicStorefrontController {
   @ApiStandardErrorResponse()
   findProducts(@Query() query: QueryPublicProductDto) {
     return this.productsService.findPublished(query);
+  }
+
+  @Get('products/:categorySlug/related-other')
+  @ResponseMessage(MESSAGES.FETCH_SUCCESS)
+  @ApiOperation({
+    summary:
+      'Tối đa 10 sản phẩm từ các danh mục khác categorySlug (mỗi category ≥1 nếu có)',
+  })
+  @ApiStandardPaginatedResponse({
+    type: ProductResponseDto,
+    description: MESSAGES.FETCH_SUCCESS,
+  })
+  @ApiStandardErrorResponse()
+  findRelatedOtherCategoryProducts(
+    @Param('categorySlug') categorySlug: string,
+  ) {
+    return this.productsService.findRelatedOtherCategories(categorySlug);
   }
 
   @Get('products/:categorySlug/:productSlug/related')

@@ -20,6 +20,10 @@ import {
   OrderProductItemDto,
   OrderResponseDto,
 } from './dto/order-response.dto';
+import {
+  ORDER_HISTORY_STATUSES,
+  QueryOrderHistoryDto,
+} from './dto/query-order-history.dto';
 import { QueryOrderDto } from './dto/query-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 
@@ -77,9 +81,42 @@ export class OrdersService {
     items: OrderResponseDto[];
     pagination: ReturnType<typeof buildPagination>;
   }> {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
-    const where: Prisma.OrderWhereInput = {};
+    return this.queryOrders(query);
+  }
+
+  async findHistory(query: QueryOrderHistoryDto): Promise<{
+    items: OrderResponseDto[];
+    pagination: ReturnType<typeof buildPagination>;
+  }> {
+    const status =
+      query.status && query.status.length > 0
+        ? query.status
+        : [...ORDER_HISTORY_STATUSES];
+    return this.queryOrders({
+      page: query.page,
+      limit: query.limit,
+      createdFrom: query.createdFrom,
+      createdTo: query.createdTo,
+      deliveryDate: query.deliveryDate,
+      deliveryTime: query.deliveryTime,
+      search: query.search,
+      status,
+    });
+  }
+
+  private async queryOrders(query: QueryOrderDto): Promise<{
+    items: OrderResponseDto[];
+    pagination: ReturnType<typeof buildPagination>;
+  }> {
+    this.assertCreatedDateRange(query.createdFrom, query.createdTo);
+    const page = query.page;
+    const limit = query.limit;
+    const where: Prisma.OrderWhereInput = {
+      createdAt: {
+        gte: this.toDateOnly(query.createdFrom)!,
+        lt: this.toExclusiveEndDate(query.createdTo),
+      },
+    };
 
     if (query.deliveryDate) {
       where.deliveryDate = this.toDateOnly(query.deliveryDate);
@@ -97,12 +134,11 @@ export class OrdersService {
       ];
     }
 
-    const sortCreated = query.sortCreated ?? 'desc';
     const [total, rows] = await this.prisma.$transaction([
       this.prisma.order.count({ where }),
       this.prisma.order.findMany({
         where,
-        orderBy: { createdAt: sortCreated },
+        orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
       }),
@@ -233,11 +269,23 @@ export class OrdersService {
     }
   }
 
+  private assertCreatedDateRange(createdFrom: string, createdTo: string): void {
+    if (createdFrom.slice(0, 10) > createdTo.slice(0, 10)) {
+      throw new BadRequestException(MESSAGES.INVALID_CREATED_DATE_RANGE);
+    }
+  }
+
   private toDateOnly(value?: string | null): Date | null {
     if (!value) {
       return null;
     }
     return new Date(`${value.slice(0, 10)}T00:00:00.000Z`);
+  }
+
+  private toExclusiveEndDate(value: string): Date {
+    const end = this.toDateOnly(value)!;
+    end.setUTCDate(end.getUTCDate() + 1);
+    return end;
   }
 
   private formatDateOnly(value: Date | null): string | null {

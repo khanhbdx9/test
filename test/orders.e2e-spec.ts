@@ -154,14 +154,23 @@ describe('Orders (e2e)', () => {
     expect(missingDate.status).toBe(400);
     expect(missingDate.body.message).toBe(MESSAGES.DELIVERY_DATE_REQUIRED);
 
+    const missingRequired = await http()
+      .get('/api/v1/orders')
+      .query({ search: phone })
+      .set(bearer());
+    expect(missingRequired.status).toBe(400);
+
     const list = await http()
       .get('/api/v1/orders')
       .query({
+        page: 1,
+        limit: 10,
+        createdFrom: '2026-11-01',
+        createdTo: '2026-12-31',
         search: phone,
         deliveryDate: '2026-11-25',
         deliveryTime: '09:00-11:00',
         status: ['PENDING_CONFIRMATION', 'CONFIRMED'],
-        sortCreated: 'desc',
       })
       .set(bearer());
     expect(list.status).toBe(200);
@@ -189,5 +198,53 @@ describe('Orders (e2e)', () => {
     expect(updated.status).toBe(200);
     expect(updated.body.data.status).toBe('CONFIRMED');
     expect(updated.body.message).toBe(MESSAGES.UPDATE_SUCCESS);
+
+    const historyQuery = {
+      page: 1,
+      limit: 10,
+      createdFrom: '2026-11-01',
+      createdTo: '2026-12-31',
+      search: phone,
+    };
+
+    const historyBeforeDone = await http()
+      .get('/api/v1/orders/history')
+      .query(historyQuery)
+      .set(bearer());
+    expect(historyBeforeDone.status).toBe(200);
+    expect(
+      historyBeforeDone.body.data.items.some(
+        (item: { id: string }) => item.id === created.body.data.id,
+      ),
+    ).toBe(false);
+
+    const completed = await http()
+      .put(`/api/v1/orders/${created.body.data.id}/update`)
+      .set(bearer())
+      .send({ status: 'COMPLETED' });
+    expect(completed.status).toBe(200);
+
+    const history = await http()
+      .get('/api/v1/orders/history')
+      .query({ ...historyQuery, status: 'COMPLETED' })
+      .set(bearer());
+    expect(history.status).toBe(200);
+    expect(
+      history.body.data.items.some(
+        (item: { id: string; status: string }) =>
+          item.id === created.body.data.id && item.status === 'COMPLETED',
+      ),
+    ).toBe(true);
+
+    const historyRejectedOnly = await http()
+      .get('/api/v1/orders/history')
+      .query({ ...historyQuery, status: 'REJECTED' })
+      .set(bearer());
+    expect(historyRejectedOnly.status).toBe(200);
+    expect(
+      historyRejectedOnly.body.data.items.some(
+        (item: { id: string }) => item.id === created.body.data.id,
+      ),
+    ).toBe(false);
   });
 });

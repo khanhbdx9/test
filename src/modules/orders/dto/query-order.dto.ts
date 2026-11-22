@@ -1,43 +1,10 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
-import {
-  IsArray,
-  IsDateString,
-  IsEnum,
-  IsIn,
-  IsOptional,
-  IsString,
-  MaxLength,
-} from 'class-validator';
-import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
+import { Transform } from 'class-transformer';
+import { IsArray, IsEnum, IsOptional } from 'class-validator';
 import { OrderStatus } from '../../../generated/prisma/client';
+import { QueryOrderListBaseDto } from './query-order-list.base.dto';
 
-export class QueryOrderDto extends PaginationQueryDto {
-  @ApiPropertyOptional({ example: '2026-11-20' })
-  @IsOptional()
-  @IsDateString({}, { message: 'Ngày giao hàng không hợp lệ' })
-  deliveryDate?: string;
-
-  @ApiPropertyOptional({ example: '09:00-11:00' })
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim() : value,
-  )
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  deliveryTime?: string;
-
-  @ApiPropertyOptional({
-    description: 'Tìm theo số điện thoại hoặc email',
-  })
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim() : value,
-  )
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
-  search?: string;
-
+export class QueryOrderDto extends QueryOrderListBaseDto {
   @ApiPropertyOptional({
     enum: OrderStatus,
     isArray: true,
@@ -53,14 +20,4 @@ export class QueryOrderDto extends PaginationQueryDto {
   @IsArray()
   @IsEnum(OrderStatus, { each: true, message: 'Trạng thái không hợp lệ' })
   status?: OrderStatus[];
-
-  @ApiPropertyOptional({
-    enum: ['asc', 'desc'],
-    default: 'desc',
-    description: 'Sort theo createdAt',
-  })
-  @IsOptional()
-  @IsIn(['asc', 'desc'])
-  @Type(() => String)
-  sortCreated?: 'asc' | 'desc' = 'desc';
 }

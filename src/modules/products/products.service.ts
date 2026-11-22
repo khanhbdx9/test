@@ -17,6 +17,7 @@ import {
 import { CreateProductDto } from './dto/create-product.dto';
 import { QueryProductDto } from './dto/query-product.dto';
 import {
+  QueryPublicCategoryProductDto,
   QueryPublicProductDto,
   QueryRelatedProductDto,
 } from './dto/query-public-product.dto';
@@ -156,6 +157,26 @@ export class ProductsService {
     });
   }
 
+  async findPublishedByCategory(
+    categorySlug: string,
+    query: QueryPublicCategoryProductDto,
+  ): Promise<{
+    items: ProductResponseDto[];
+    pagination: ReturnType<typeof buildPagination>;
+  }> {
+    const resolvedCategoryId = await this.resolvePublicCategoryId(
+      undefined,
+      categorySlug,
+    );
+    return this.findAll({
+      page: query.page,
+      limit: query.limit,
+      search: query.search,
+      categoryId: resolvedCategoryId,
+      status: ProductStatus.PUBLISHED,
+    });
+  }
+
   async findPublishedBySlug(
     categorySlug: string,
     productSlug: string,
@@ -187,46 +208,64 @@ export class ProductsService {
     items: ProductResponseDto[];
     pagination: ReturnType<typeof buildPagination>;
   }> {
-    const current = await this.prisma.product.findFirst({
+    const current = await this.getPublishedProductRef(categorySlug, productSlug);
+    return this.findRelatedSameCategory(current, query);
+  }
+
+  async findRelatedOtherCategories(categorySlug: string): Promise<{
+    items: ProductResponseDto[];
+    pagination: ReturnType<typeof buildPagination>;
+  }> {
+    await this.resolvePublicCategoryId(undefined, categorySlug);
+
+    const products = await this.prisma.product.findMany({
       where: {
         deletedAt: null,
         status: ProductStatus.PUBLISHED,
-        slug: productSlug,
         category: {
-          slug: categorySlug,
           deletedAt: null,
           status: CategoryStatus.VISIBLE,
+          slug: { not: categorySlug },
         },
       },
-      select: { id: true, categoryId: true },
+      select: productSelect,
+      orderBy: publicListOrder,
     });
-    if (!current) {
-      throw new NotFoundException();
+
+    const byCategory = new Map<string, ProductRecord[]>();
+    for (const product of products) {
+      const list = byCategory.get(product.categoryId);
+      if (list) {
+        list.push(product);
+      } else {
+        byCategory.set(product.categoryId, [product]);
+      }
     }
 
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
-    const where: Prisma.ProductWhereInput = {
-      deletedAt: null,
-      status: ProductStatus.PUBLISHED,
-      categoryId: current.categoryId,
-      id: { not: current.id },
-    };
-
-    const [total, items] = await this.prisma.$transaction([
-      this.prisma.product.count({ where }),
-      this.prisma.product.findMany({
-        where,
-        select: productSelect,
-        orderBy: publicListOrder,
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
-    ]);
+    const max = 10;
+    const groups = [...byCategory.values()];
+    const selected: ProductRecord[] = [];
+    let round = 0;
+    while (selected.length < max) {
+      let addedInRound = false;
+      for (const group of groups) {
+        if (round < group.length) {
+          selected.push(group[round]);
+          addedInRound = true;
+          if (selected.length >= max) {
+            break;
+          }
+        }
+      }
+      if (!addedInRound) {
+        break;
+      }
+      round += 1;
+    }
 
     return {
-      items: items.map((item) => this.toResponse(item)),
-      pagination: buildPagination(page, limit, total),
+      items: selected.map((item) => this.toResponse(item)),
+      pagination: buildPagination(1, max, selected.length),
     };
   }
 
@@ -447,6 +486,66 @@ export class ProductsService {
       throw new NotFoundException();
     }
     return category.id;
+  }
+
+  private async getPublishedProductRef(
+    categorySlug: string,
+    productSlug: string,
+  ): Promise<{ id: string; categoryId: string }> {
+    const current = await this.prisma.product.findFirst({
+      where: {
+        deletedAt: null,
+        status: ProductStatus.PUBLISHED,
+        slug: productSlug,
+        category: {
+          slug: categorySlug,
+          deletedAt: null,
+          status: CategoryStatus.VISIBLE,
+        },
+      },
+      select: { id: true, categoryId: true },
+    });
+    if (!current) {
+      throw new NotFoundException();
+    }
+    return current;
+  }
+
+  private async findRelatedSameCategory(
+    current: { id: string; categoryId: string },
+    query: QueryRelatedProductDto,
+  ): Promise<{
+    items: ProductResponseDto[];
+    pagination: ReturnType<typeof buildPagination>;
+  }> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const where: Prisma.ProductWhereInput = {
+      deletedAt: null,
+      status: ProductStatus.PUBLISHED,
+      id: { not: current.id },
+      categoryId: current.categoryId,
+      category: {
+        deletedAt: null,
+        status: CategoryStatus.VISIBLE,
+      },
+    };
+
+    const [total, items] = await this.prisma.$transaction([
+      this.prisma.product.count({ where }),
+      this.prisma.product.findMany({
+        where,
+        select: productSelect,
+        orderBy: publicListOrder,
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+    ]);
+
+    return {
+      items: items.map((item) => this.toResponse(item)),
+      pagination: buildPagination(page, limit, total),
+    };
   }
 
   private toMoney(value: string | null | undefined): Prisma.Decimal | null {

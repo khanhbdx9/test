@@ -17,6 +17,7 @@ import {
 import { Permissions } from '../../common/decorators/permissions.decorator';
 import { ResponseMessage } from '../../common/decorators/response-message.decorator';
 import { OrderResponseDto } from './dto/order-response.dto';
+import { QueryOrderHistoryDto } from './dto/query-order-history.dto';
 import { QueryOrderDto } from './dto/query-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { OrdersService } from './orders.service';
@@ -30,7 +31,10 @@ export class OrdersController {
   @Get()
   @Permissions('orders.view')
   @ResponseMessage(MESSAGES.FETCH_SUCCESS)
-  @ApiOperation({ summary: 'Danh sách đơn hàng' })
+  @ApiOperation({
+    summary:
+      'Danh sách đơn hàng (bắt buộc page, limit, createdFrom, createdTo)',
+  })
   @ApiStandardPaginatedResponse({
     type: OrderResponseDto,
     description: MESSAGES.FETCH_SUCCESS,
@@ -38,6 +42,22 @@ export class OrdersController {
   @ApiStandardErrorResponse()
   findAll(@Query() query: QueryOrderDto) {
     return this.ordersService.findAll(query);
+  }
+
+  @Get('history')
+  @Permissions('orders.view')
+  @ResponseMessage(MESSAGES.FETCH_SUCCESS)
+  @ApiOperation({
+    summary:
+      'Lịch sử đơn (REJECTED|COMPLETED; bắt buộc page, limit, createdFrom, createdTo)',
+  })
+  @ApiStandardPaginatedResponse({
+    type: OrderResponseDto,
+    description: MESSAGES.FETCH_SUCCESS,
+  })
+  @ApiStandardErrorResponse()
+  findHistory(@Query() query: QueryOrderHistoryDto) {
+    return this.ordersService.findHistory(query);
   }
 
   @Get(':id')

@@ -123,4 +123,44 @@ describe('OrdersService', () => {
       }),
     ).rejects.toBeInstanceOf(NotFoundException);
   });
+
+  it('findHistory mặc định chỉ REJECTED và COMPLETED trong khoảng createdAt', async () => {
+    prisma.$transaction.mockImplementation(
+      async (ops: Array<Promise<unknown>>) => Promise.all(ops),
+    );
+    prisma.order.count.mockResolvedValue(0);
+    prisma.order.findMany.mockResolvedValue([]);
+
+    await service.findHistory({
+      page: 1,
+      limit: 10,
+      createdFrom: '2026-11-01',
+      createdTo: '2026-11-22',
+    });
+
+    expect(prisma.order.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          createdAt: {
+            gte: new Date('2026-11-01T00:00:00.000Z'),
+            lt: new Date('2026-11-23T00:00:00.000Z'),
+          },
+          status: {
+            in: [OrderStatus.REJECTED, OrderStatus.COMPLETED],
+          },
+        },
+      }),
+    );
+  });
+
+  it('từ chối khoảng createdFrom > createdTo', async () => {
+    await expect(
+      service.findAll({
+        page: 1,
+        limit: 10,
+        createdFrom: '2026-11-22',
+        createdTo: '2026-11-01',
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
 });
