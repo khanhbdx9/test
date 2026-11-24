@@ -7,17 +7,20 @@ import { MESSAGES } from '../../common/constants/messages';
 import { buildPagination } from '../../common/utils/pagination.util';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import {
+  FulfillmentMethod,
   Order,
+  OrderItem,
   OrderStatus,
   PaymentMethod,
   Prisma,
   ProductStatus,
+  VariantStatus,
 } from '../../generated/prisma/client';
 import { MailService } from '../mail/mail.service';
 import { NotificationsService } from '../notifications/notifications.service';
-import { CreateOrderDto } from './dto/create-order.dto';
+import { CreateOrderDto, CreateOrderItemDto } from './dto/create-order.dto';
 import {
-  OrderProductItemDto,
+  OrderItemResponseDto,
   OrderResponseDto,
 } from './dto/order-response.dto';
 import {
@@ -27,11 +30,18 @@ import {
 import { QueryOrderDto } from './dto/query-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 
-type PricedProduct = {
-  id: string;
-  sku: string;
-  name: string;
+type OrderWithItems = Order & { items: OrderItem[] };
+
+type ResolvedOrderItem = {
+  productId: string;
+  variantId: string;
+  quantity: number;
   unitPrice: Prisma.Decimal;
+  productName: string;
+  productSku: string;
+  variantSku: string;
+  size: string;
+  style: string;
   imageUrl: string | null;
 };
 
@@ -45,10 +55,10 @@ export class OrdersService {
 
   async createPublic(dto: CreateOrderDto): Promise<OrderResponseDto> {
     this.assertDeliveryDate(dto.paymentMethod, dto.deliveryDate);
-    const productIds = this.normalizeProductIds(dto.productIds);
-    const priced = await this.loadPricedProducts(productIds);
-    const totalAmount = priced.reduce(
-      (sum, item) => sum.add(item.unitPrice),
+    this.assertShippingAddress(dto.fulfillmentMethod, dto.shippingAddress);
+    const resolvedItems = await this.resolveOrderItems(dto.items);
+    const totalAmount = resolvedItems.reduce(
+      (sum, item) => sum.add(item.unitPrice.mul(item.quantity)),
       new Prisma.Decimal(0),
     );
 
@@ -56,20 +66,38 @@ export class OrdersService {
       data: {
         email: dto.email ?? null,
         phone: dto.phone,
-        shippingAddress: dto.shippingAddress,
-        fullName: dto.fullName ?? null,
+        shippingAddress:
+          dto.fulfillmentMethod === FulfillmentMethod.PICKUP
+            ? null
+            : (dto.shippingAddress ?? null),
+        fullName: dto.fullName,
         note: dto.note ?? null,
         paymentMethod: dto.paymentMethod,
         paymentImageUrl: dto.paymentImageUrl ?? null,
+        fulfillmentMethod: dto.fulfillmentMethod,
         status: OrderStatus.PENDING_CONFIRMATION,
         deliveryDate: this.toDateOnly(dto.deliveryDate),
         deliveryTime: dto.deliveryTime ?? null,
-        productIds,
         totalAmount,
+        items: {
+          create: resolvedItems.map((item) => ({
+            productId: item.productId,
+            variantId: item.variantId,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            productName: item.productName,
+            productSku: item.productSku,
+            variantSku: item.variantSku,
+            size: item.size,
+            style: item.style,
+            imageUrl: item.imageUrl,
+          })),
+        },
       },
+      include: { items: { orderBy: { createdAt: 'asc' } } },
     });
 
-    const response = this.toResponse(order, priced);
+    const response = this.toResponse(order);
     await Promise.all([
       this.mailService.notifyNewOrder(response),
       this.notificationsService.createOrderCreatedNotifications(response),
@@ -138,126 +166,111 @@ export class OrdersService {
       this.prisma.order.count({ where }),
       this.prisma.order.findMany({
         where,
+        include: { items: { orderBy: { createdAt: 'asc' } } },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
       }),
     ]);
 
-    const productsById = await this.loadProductsMap(
-      rows.flatMap((row) => row.productIds),
-    );
-
     return {
-      items: rows.map((row) =>
-        this.toResponse(
-          row,
-          row.productIds
-            .map((id) => productsById.get(id))
-            .filter((item): item is PricedProduct => Boolean(item)),
-        ),
-      ),
+      items: rows.map((row) => this.toResponse(row)),
       pagination: buildPagination(page, limit, total),
     };
   }
 
   async findOne(id: string): Promise<OrderResponseDto> {
-    const order = await this.getOrder(id);
-    const productsById = await this.loadProductsMap(order.productIds);
-    const priced = order.productIds
-      .map((productId) => productsById.get(productId))
-      .filter((item): item is PricedProduct => Boolean(item));
-    return this.toResponse(order, priced);
+    return this.toResponse(await this.getOrder(id));
   }
 
   async updateStatus(
     id: string,
     dto: UpdateOrderStatusDto,
   ): Promise<OrderResponseDto> {
-    const current = await this.getOrder(id);
+    await this.getOrder(id);
     const order = await this.prisma.order.update({
       where: { id },
       data: { status: dto.status },
+      include: { items: { orderBy: { createdAt: 'asc' } } },
     });
-    const productsById = await this.loadProductsMap(current.productIds);
-    const priced = current.productIds
-      .map((productId) => productsById.get(productId))
-      .filter((item): item is PricedProduct => Boolean(item));
-    return this.toResponse(order, priced);
+    return this.toResponse(order);
   }
 
-  private async getOrder(id: string): Promise<Order> {
-    const order = await this.prisma.order.findUnique({ where: { id } });
+  private async getOrder(id: string): Promise<OrderWithItems> {
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+      include: { items: { orderBy: { createdAt: 'asc' } } },
+    });
     if (!order) {
       throw new NotFoundException(MESSAGES.NOT_FOUND);
     }
     return order;
   }
 
-  private normalizeProductIds(productIds: string[]): string[] {
-    const unique = [...new Set(productIds.map((id) => id.trim()))];
-    if (unique.length === 0) {
+  private async resolveOrderItems(
+    items: CreateOrderItemDto[],
+  ): Promise<ResolvedOrderItem[]> {
+    if (items.length === 0) {
       throw new BadRequestException(MESSAGES.PRODUCTS_REQUIRED);
     }
-    return unique;
-  }
 
-  private async loadPricedProducts(
-    productIds: string[],
-  ): Promise<PricedProduct[]> {
-    const productsById = await this.loadProductsMap(productIds, true);
-    const missing = productIds.filter((id) => !productsById.has(id));
-    if (missing.length > 0) {
-      throw new BadRequestException(MESSAGES.PRODUCT_NOT_FOUND);
-    }
-    return productIds.map((id) => productsById.get(id)!);
-  }
-
-  private async loadProductsMap(
-    productIds: string[],
-    requirePublished = false,
-  ): Promise<Map<string, PricedProduct>> {
-    const uniqueIds = [...new Set(productIds)];
-    if (uniqueIds.length === 0) {
-      return new Map();
-    }
-
-    const where: Prisma.ProductWhereInput = {
-      id: { in: uniqueIds },
-      deletedAt: null,
-    };
-    if (requirePublished) {
-      where.status = ProductStatus.PUBLISHED;
-    }
-
-    const rows = await this.prisma.product.findMany({
-      where,
+    const variantIds = [...new Set(items.map((item) => item.variantId))];
+    const variants = await this.prisma.productVariant.findMany({
+      where: {
+        id: { in: variantIds },
+        status: VariantStatus.ACTIVE,
+        product: {
+          deletedAt: null,
+          status: ProductStatus.PUBLISHED,
+        },
+      },
       select: {
         id: true,
+        productId: true,
         sku: true,
-        name: true,
+        size: true,
+        style: true,
         price: true,
         salePrice: true,
-        images: {
-          where: { isCover: true },
-          select: { url: true },
-          take: 1,
+        product: {
+          select: {
+            id: true,
+            sku: true,
+            name: true,
+            images: {
+              where: { isCover: true },
+              select: { url: true },
+              take: 1,
+            },
+          },
         },
       },
     });
 
-    return new Map(
-      rows.map((row) => [
-        row.id,
-        {
-          id: row.id,
-          sku: row.sku,
-          name: row.name,
-          unitPrice: row.salePrice ?? row.price,
-          imageUrl: row.images[0]?.url ?? null,
-        },
-      ]),
-    );
+    const variantById = new Map(variants.map((row) => [row.id, row]));
+    const missing = variantIds.filter((id) => !variantById.has(id));
+    if (missing.length > 0) {
+      throw new BadRequestException(MESSAGES.VARIANT_NOT_FOUND);
+    }
+
+    return items.map((item) => {
+      const variant = variantById.get(item.variantId)!;
+      if (variant.productId !== item.productId) {
+        throw new BadRequestException(MESSAGES.VARIANT_PRODUCT_MISMATCH);
+      }
+      return {
+        productId: variant.product.id,
+        variantId: variant.id,
+        quantity: item.quantity,
+        unitPrice: variant.salePrice ?? variant.price,
+        productName: variant.product.name,
+        productSku: variant.product.sku,
+        variantSku: variant.sku,
+        size: variant.size,
+        style: variant.style,
+        imageUrl: variant.product.images[0]?.url ?? null,
+      };
+    });
   }
 
   private assertDeliveryDate(
@@ -266,6 +279,18 @@ export class OrdersService {
   ): void {
     if (paymentMethod === PaymentMethod.BANK_TRANSFER && !deliveryDate) {
       throw new BadRequestException(MESSAGES.DELIVERY_DATE_REQUIRED);
+    }
+  }
+
+  private assertShippingAddress(
+    fulfillmentMethod: FulfillmentMethod,
+    shippingAddress?: string | null,
+  ): void {
+    if (
+      fulfillmentMethod === FulfillmentMethod.DELIVERY &&
+      (!shippingAddress || shippingAddress.trim().length === 0)
+    ) {
+      throw new BadRequestException(MESSAGES.SHIPPING_ADDRESS_REQUIRED);
     }
   }
 
@@ -295,20 +320,28 @@ export class OrdersService {
     return value.toISOString().slice(0, 10);
   }
 
-  private toProductItems(products: PricedProduct[]): OrderProductItemDto[] {
-    return products.map((product) => ({
-      id: product.id,
-      sku: product.sku,
-      name: product.name,
-      unitPrice: product.unitPrice.toFixed(2),
-      imageUrl: product.imageUrl,
-    }));
+  private toItemResponses(items: OrderItem[]): OrderItemResponseDto[] {
+    return items.map((item) => {
+      const unitPrice = item.unitPrice.toFixed(2);
+      const lineTotal = item.unitPrice.mul(item.quantity).toFixed(2);
+      return {
+        id: item.id,
+        productId: item.productId,
+        variantId: item.variantId,
+        quantity: item.quantity,
+        unitPrice,
+        lineTotal,
+        productName: item.productName,
+        productSku: item.productSku,
+        variantSku: item.variantSku,
+        size: item.size,
+        style: item.style,
+        imageUrl: item.imageUrl,
+      };
+    });
   }
 
-  private toResponse(
-    order: Order,
-    products: PricedProduct[],
-  ): OrderResponseDto {
+  private toResponse(order: OrderWithItems): OrderResponseDto {
     return {
       id: order.id,
       email: order.email,
@@ -318,12 +351,12 @@ export class OrdersService {
       note: order.note,
       paymentMethod: order.paymentMethod,
       paymentImageUrl: order.paymentImageUrl,
+      fulfillmentMethod: order.fulfillmentMethod,
       status: order.status,
       deliveryDate: this.formatDateOnly(order.deliveryDate),
       deliveryTime: order.deliveryTime,
-      productIds: order.productIds,
       totalAmount: order.totalAmount.toFixed(2),
-      products: this.toProductItems(products),
+      items: this.toItemResponses(order.items),
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
     };

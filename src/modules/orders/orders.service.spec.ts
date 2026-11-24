@@ -1,10 +1,12 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import {
+  FulfillmentMethod,
   OrderStatus,
   PaymentMethod,
   Prisma,
   ProductStatus,
+  VariantStatus,
 } from '../../generated/prisma/client';
 
 describe('OrdersService', () => {
@@ -16,7 +18,7 @@ describe('OrdersService', () => {
       count: jest.fn(),
       update: jest.fn(),
     },
-    product: {
+    productVariant: {
       findMany: jest.fn(),
     },
     $transaction: jest.fn(),
@@ -41,74 +43,141 @@ describe('OrdersService', () => {
   it('từ chối tạo đơn chuyển khoản thiếu ngày giao', async () => {
     await expect(
       service.createPublic({
-        productIds: ['11111111-1111-4111-8111-111111111111'],
+        items: [
+          {
+            productId: '11111111-1111-4111-8111-111111111111',
+            variantId: '22222222-2222-4222-8222-222222222222',
+            quantity: 1,
+          },
+        ],
+        fullName: 'Khách',
         phone: '0901234567',
-        shippingAddress: '123 Nguyễn Huệ',
+        fulfillmentMethod: FulfillmentMethod.PICKUP,
+        shippingAddress: null,
         paymentMethod: PaymentMethod.BANK_TRANSFER,
       }),
     ).rejects.toBeInstanceOf(BadRequestException);
     expect(prisma.order.create).not.toHaveBeenCalled();
   });
 
-  it('tính tổng từ salePrice/price trong DB rồi gửi mail', async () => {
+  it('tính tổng từ giá biến thể * quantity rồi gửi mail', async () => {
     const now = new Date();
-    prisma.product.findMany.mockResolvedValue([
-      {
-        id: '11111111-1111-4111-8111-111111111111',
-        sku: 'CAKE-1',
-        name: 'Bánh A',
-        price: new Prisma.Decimal('350000'),
-        salePrice: new Prisma.Decimal('299000'),
-        images: [{ url: 'https://cdn.example.com/a.jpg' }],
-        status: ProductStatus.PUBLISHED,
-      },
+    prisma.productVariant.findMany.mockResolvedValue([
       {
         id: '22222222-2222-4222-8222-222222222222',
-        sku: 'CAKE-2',
-        name: 'Bánh B',
+        productId: '11111111-1111-4111-8111-111111111111',
+        sku: 'CAKE-1-S',
+        size: 'S',
+        style: 'Tròn',
+        price: new Prisma.Decimal('350000'),
+        salePrice: new Prisma.Decimal('299000'),
+        status: VariantStatus.ACTIVE,
+        product: {
+          id: '11111111-1111-4111-8111-111111111111',
+          sku: 'CAKE-1',
+          name: 'Bánh A',
+          status: ProductStatus.PUBLISHED,
+          images: [{ url: 'https://cdn.example.com/a.jpg' }],
+        },
+      },
+      {
+        id: '33333333-3333-4333-8333-333333333333',
+        productId: '44444444-4444-4444-8444-444444444444',
+        sku: 'CAKE-2-S',
+        size: 'S',
+        style: 'Tròn',
         price: new Prisma.Decimal('100000'),
         salePrice: null,
-        images: [],
-        status: ProductStatus.PUBLISHED,
+        status: VariantStatus.ACTIVE,
+        product: {
+          id: '44444444-4444-4444-8444-444444444444',
+          sku: 'CAKE-2',
+          name: 'Bánh B',
+          status: ProductStatus.PUBLISHED,
+          images: [],
+        },
       },
     ]);
     prisma.order.create.mockResolvedValue({
-      id: '33333333-3333-4333-8333-333333333333',
+      id: '55555555-5555-4555-8555-555555555555',
       email: null,
       phone: '0901234567',
-      shippingAddress: '123 Nguyễn Huệ',
-      fullName: null,
+      shippingAddress: null,
+      fullName: 'Khách Mock',
       note: null,
       paymentMethod: PaymentMethod.AT_STORE,
       paymentImageUrl: null,
+      fulfillmentMethod: FulfillmentMethod.PICKUP,
       status: OrderStatus.PENDING_CONFIRMATION,
       deliveryDate: null,
       deliveryTime: null,
-      productIds: [
-        '11111111-1111-4111-8111-111111111111',
-        '22222222-2222-4222-8222-222222222222',
-      ],
-      totalAmount: new Prisma.Decimal('399000'),
+      totalAmount: new Prisma.Decimal('698000'),
       createdAt: now,
       updatedAt: now,
+      items: [
+        {
+          id: 'item-1',
+          orderId: '55555555-5555-4555-8555-555555555555',
+          productId: '11111111-1111-4111-8111-111111111111',
+          variantId: '22222222-2222-4222-8222-222222222222',
+          quantity: 2,
+          unitPrice: new Prisma.Decimal('299000'),
+          productName: 'Bánh A',
+          productSku: 'CAKE-1',
+          variantSku: 'CAKE-1-S',
+          size: 'S',
+          style: 'Tròn',
+          imageUrl: 'https://cdn.example.com/a.jpg',
+          createdAt: now,
+          updatedAt: now,
+        },
+        {
+          id: 'item-2',
+          orderId: '55555555-5555-4555-8555-555555555555',
+          productId: '44444444-4444-4444-8444-444444444444',
+          variantId: '33333333-3333-4333-8333-333333333333',
+          quantity: 1,
+          unitPrice: new Prisma.Decimal('100000'),
+          productName: 'Bánh B',
+          productSku: 'CAKE-2',
+          variantSku: 'CAKE-2-S',
+          size: 'S',
+          style: 'Tròn',
+          imageUrl: null,
+          createdAt: now,
+          updatedAt: now,
+        },
+      ],
     });
 
     const result = await service.createPublic({
-      productIds: [
-        '11111111-1111-4111-8111-111111111111',
-        '22222222-2222-4222-8222-222222222222',
+      items: [
+        {
+          productId: '11111111-1111-4111-8111-111111111111',
+          variantId: '22222222-2222-4222-8222-222222222222',
+          quantity: 2,
+        },
+        {
+          productId: '44444444-4444-4444-8444-444444444444',
+          variantId: '33333333-3333-4333-8333-333333333333',
+          quantity: 1,
+        },
       ],
+      fullName: 'Khách Mock',
       phone: '0901234567',
-      shippingAddress: '123 Nguyễn Huệ',
+      fulfillmentMethod: FulfillmentMethod.PICKUP,
+      shippingAddress: null,
       paymentMethod: PaymentMethod.AT_STORE,
     });
 
-    expect(result.totalAmount).toBe('399000.00');
-    expect(result.products).toHaveLength(2);
+    expect(result.totalAmount).toBe('698000.00');
+    expect(result.items).toHaveLength(2);
+    expect(result.items[0].lineTotal).toBe('598000.00');
     expect(prisma.order.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          totalAmount: new Prisma.Decimal('399000'),
+          totalAmount: new Prisma.Decimal('698000'),
+          fulfillmentMethod: FulfillmentMethod.PICKUP,
         }),
       }),
     );

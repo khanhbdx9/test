@@ -34,11 +34,15 @@ export const MESSAGES = {
   UPLOAD_FOLDER_INVALID: 'Folder không hợp lệ',
   DELIVERY_DATE_REQUIRED:
     'Ngày giao hàng bắt buộc khi thanh toán chuyển khoản',
+  SHIPPING_ADDRESS_REQUIRED:
+    'Địa chỉ giao hàng bắt buộc khi chọn giao tận nơi',
   INVALID_CREATED_DATE_RANGE:
     'Khoảng ngày createdFrom phải nhỏ hơn hoặc bằng createdTo',
   CONFIG_KEY_IN_USE: 'Key cấu hình đã tồn tại',
   PRODUCTS_REQUIRED: 'Đơn hàng cần ít nhất một sản phẩm',
   PRODUCT_NOT_FOUND: 'Một hoặc nhiều sản phẩm không hợp lệ',
+  VARIANT_NOT_FOUND: 'Một hoặc nhiều biến thể không hợp lệ',
+  VARIANT_PRODUCT_MISMATCH: 'Biến thể không thuộc sản phẩm đã chọn',
   THEME_CODE_IN_USE: 'Mã theme đã tồn tại',
   THEME_NOT_FOUND: 'Không tìm thấy theme',
   BANNER_NOT_FOUND: 'Không tìm thấy banner',

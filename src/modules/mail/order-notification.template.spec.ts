@@ -1,4 +1,8 @@
-import { OrderStatus, PaymentMethod } from '../../generated/prisma/client';
+import {
+  FulfillmentMethod,
+  OrderStatus,
+  PaymentMethod,
+} from '../../generated/prisma/client';
 import {
   buildOrderNotificationHtml,
   buildOrderNotificationText,
@@ -14,17 +18,24 @@ describe('order-notification.template', () => {
     note: 'Giao sáng',
     paymentMethod: PaymentMethod.BANK_TRANSFER,
     paymentImageUrl: 'https://cdn.example.com/bill.jpg',
+    fulfillmentMethod: FulfillmentMethod.DELIVERY,
     status: OrderStatus.PENDING_CONFIRMATION,
     deliveryDate: '2026-11-25',
     deliveryTime: '09:00-11:00',
-    productIds: ['22222222-2222-4222-8222-222222222222'],
     totalAmount: '299000.00',
-    products: [
+    items: [
       {
-        id: '22222222-2222-4222-8222-222222222222',
-        sku: 'CAKE-1',
-        name: 'Bánh Vanilla',
+        id: 'item-1',
+        productId: '22222222-2222-4222-8222-222222222222',
+        variantId: '33333333-3333-4333-8333-333333333333',
+        quantity: 1,
         unitPrice: '299000.00',
+        lineTotal: '299000.00',
+        productName: 'Bánh Vanilla',
+        productSku: 'CAKE-1',
+        variantSku: 'CAKE-1-S',
+        size: 'S',
+        style: 'Tròn',
         imageUrl: 'https://cdn.example.com/cake.jpg',
       },
     ],

@@ -33,9 +33,13 @@ export declare const MESSAGES: {
     readonly DUPLICATE_VARIANT_SKU: "SKU biến thể bị trùng";
     readonly UPLOAD_FOLDER_INVALID: "Folder không hợp lệ";
     readonly DELIVERY_DATE_REQUIRED: "Ngày giao hàng bắt buộc khi thanh toán chuyển khoản";
+    readonly SHIPPING_ADDRESS_REQUIRED: "Địa chỉ giao hàng bắt buộc khi chọn giao tận nơi";
+    readonly INVALID_CREATED_DATE_RANGE: "Khoảng ngày createdFrom phải nhỏ hơn hoặc bằng createdTo";
     readonly CONFIG_KEY_IN_USE: "Key cấu hình đã tồn tại";
     readonly PRODUCTS_REQUIRED: "Đơn hàng cần ít nhất một sản phẩm";
     readonly PRODUCT_NOT_FOUND: "Một hoặc nhiều sản phẩm không hợp lệ";
+    readonly VARIANT_NOT_FOUND: "Một hoặc nhiều biến thể không hợp lệ";
+    readonly VARIANT_PRODUCT_MISMATCH: "Biến thể không thuộc sản phẩm đã chọn";
     readonly THEME_CODE_IN_USE: "Mã theme đã tồn tại";
     readonly THEME_NOT_FOUND: "Không tìm thấy theme";
     readonly BANNER_NOT_FOUND: "Không tìm thấy banner";

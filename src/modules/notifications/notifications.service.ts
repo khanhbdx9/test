@@ -51,7 +51,7 @@ export class NotificationsService {
       order.fullName ? `Khách: ${order.fullName}` : null,
       `SĐT: ${order.phone}`,
       `Tổng: ${order.totalAmount} VND`,
-      `${order.products.length} sản phẩm`,
+      `${order.items.length} dòng hàng`,
     ]
       .filter(Boolean)
       .join(' · ');
@@ -67,7 +67,8 @@ export class NotificationsService {
           orderId: order.id,
           phone: order.phone,
           totalAmount: order.totalAmount,
-          productIds: order.productIds,
+          productIds: order.items.map((item) => item.productId),
+          itemCount: order.items.length,
         } as Prisma.InputJsonValue,
       })),
     });

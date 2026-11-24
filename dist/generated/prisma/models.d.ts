@@ -8,6 +8,7 @@ export type * from './models/Product';
 export type * from './models/ProductImage';
 export type * from './models/ProductVariant';
 export type * from './models/Order';
+export type * from './models/OrderItem';
 export type * from './models/SystemConfig';
 export type * from './models/Theme';
 export type * from './models/Banner';

@@ -1,13 +1,19 @@
-import { PaymentMethod } from '../../../generated/prisma/client';
+import { FulfillmentMethod, PaymentMethod } from '../../../generated/prisma/client';
+export declare class CreateOrderItemDto {
+    productId: string;
+    variantId: string;
+    quantity: number;
+}
 export declare class CreateOrderDto {
-    productIds: string[];
-    email?: string;
+    items: CreateOrderItemDto[];
+    fullName: string;
     phone: string;
-    shippingAddress: string;
-    fullName?: string;
-    note?: string;
-    paymentMethod: PaymentMethod;
-    paymentImageUrl?: string | null;
+    email?: string;
+    fulfillmentMethod: FulfillmentMethod;
+    shippingAddress?: string | null;
     deliveryDate?: string;
     deliveryTime?: string;
+    paymentMethod: PaymentMethod;
+    paymentImageUrl?: string | null;
+    note?: string;
 }

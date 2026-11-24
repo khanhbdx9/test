@@ -1,14 +1,22 @@
-# Tạo đơn hàng (phase đơn giản)
+# Tạo đơn hàng
 
 - Thứ tự: 23
 - Trạng thái: Xong
 - Module: orders
-- Database: `database/orders.md`
-- Phụ thuộc: products, uploads (ảnh chuyển khoản, optional)
+- Database: `database/orders.md`, `database/order-items.md`
+- Phụ thuộc: products (variants), uploads (ảnh chuyển khoản, optional)
 
 ## Phạm vi
 
-Khách tạo đơn công khai kèm `productIds`. Backend load sản phẩm còn hiệu lực từ DB, tính `totalAmount` = tổng `(salePrice ?? price)`. Trạng thái mặc định `PENDING_CONFIRMATION`. Khi `payment_method = BANK_TRANSFER` bắt buộc `delivery_date`.
+Khách tạo đơn công khai kèm `items[]` (`productId`, `variantId`, `quantity`). Backend:
+
+- Validate biến thể ACTIVE thuộc sản phẩm PUBLISHED
+- Tính `unitPrice` = `salePrice ?? price` của biến thể
+- `totalAmount` = tổng `unitPrice * quantity`
+- Lưu snapshot dòng hàng vào `order_items`
+- `fulfillmentMethod`: `PICKUP` (không cần địa chỉ) hoặc `DELIVERY` (bắt buộc `shippingAddress`)
+- Trạng thái mặc định `PENDING_CONFIRMATION`
+- Khi `paymentMethod = BANK_TRANSFER` bắt buộc `deliveryDate`
 
 Sau tạo đơn thành công (không chặn response nếu lỗi phụ):
 
@@ -25,4 +33,4 @@ Sau tạo đơn thành công (không chặn response nếu lỗi phụ):
 
 ## Ngoài phạm vi
 
-Order items snapshot bảng riêng, idempotency, khách hàng, lịch sử trạng thái chi tiết, báo cáo.
+Idempotency, khách hàng, lịch sử trạng thái chi tiết, báo cáo.

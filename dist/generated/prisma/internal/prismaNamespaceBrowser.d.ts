@@ -21,6 +21,7 @@ export declare const ModelName: {
     readonly ProductImage: "ProductImage";
     readonly ProductVariant: "ProductVariant";
     readonly Order: "Order";
+    readonly OrderItem: "OrderItem";
     readonly SystemConfig: "SystemConfig";
     readonly Theme: "Theme";
     readonly Banner: "Banner";
@@ -152,15 +153,32 @@ export declare const OrderScalarFieldEnum: {
     readonly note: "note";
     readonly paymentMethod: "paymentMethod";
     readonly paymentImageUrl: "paymentImageUrl";
+    readonly fulfillmentMethod: "fulfillmentMethod";
     readonly status: "status";
     readonly deliveryDate: "deliveryDate";
     readonly deliveryTime: "deliveryTime";
-    readonly productIds: "productIds";
     readonly totalAmount: "totalAmount";
     readonly createdAt: "createdAt";
     readonly updatedAt: "updatedAt";
 };
 export type OrderScalarFieldEnum = (typeof OrderScalarFieldEnum)[keyof typeof OrderScalarFieldEnum];
+export declare const OrderItemScalarFieldEnum: {
+    readonly id: "id";
+    readonly orderId: "orderId";
+    readonly productId: "productId";
+    readonly variantId: "variantId";
+    readonly quantity: "quantity";
+    readonly unitPrice: "unitPrice";
+    readonly productName: "productName";
+    readonly productSku: "productSku";
+    readonly variantSku: "variantSku";
+    readonly size: "size";
+    readonly style: "style";
+    readonly imageUrl: "imageUrl";
+    readonly createdAt: "createdAt";
+    readonly updatedAt: "updatedAt";
+};
+export type OrderItemScalarFieldEnum = (typeof OrderItemScalarFieldEnum)[keyof typeof OrderItemScalarFieldEnum];
 export declare const SystemConfigScalarFieldEnum: {
     readonly id: "id";
     readonly key: "key";

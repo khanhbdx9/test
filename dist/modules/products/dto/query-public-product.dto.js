@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.QueryRelatedProductDto = exports.QueryPublicProductDto = void 0;
+exports.QueryRelatedProductDto = exports.QueryPublicCategoryProductDto = exports.QueryPublicProductDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
@@ -56,6 +56,18 @@ __decorate([
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], QueryPublicProductDto.prototype, "isBestSeller", void 0);
+class QueryPublicCategoryProductDto extends pagination_query_dto_1.PaginationQueryDto {
+    search;
+}
+exports.QueryPublicCategoryProductDto = QueryPublicCategoryProductDto;
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Tìm theo tên, SKU hoặc slug' }),
+    (0, class_transformer_1.Transform)(({ value }) => typeof value === 'string' ? value.trim() : value),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(100),
+    __metadata("design:type", String)
+], QueryPublicCategoryProductDto.prototype, "search", void 0);
 class QueryRelatedProductDto extends pagination_query_dto_1.PaginationQueryDto {
 }
 exports.QueryRelatedProductDto = QueryRelatedProductDto;

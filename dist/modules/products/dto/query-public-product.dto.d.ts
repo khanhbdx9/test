@@ -6,5 +6,8 @@ export declare class QueryPublicProductDto extends PaginationQueryDto {
     isFeatured?: boolean;
     isBestSeller?: boolean;
 }
+export declare class QueryPublicCategoryProductDto extends PaginationQueryDto {
+    search?: string;
+}
 export declare class QueryRelatedProductDto extends PaginationQueryDto {
 }

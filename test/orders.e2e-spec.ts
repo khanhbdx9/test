@@ -58,7 +58,7 @@ describe('Orders (e2e)', () => {
     return { Authorization: `Bearer ${token}` };
   }
 
-  it('public tạo đơn kèm sản phẩm, tính tổng, admin cập nhật trạng thái', async () => {
+  it('public tạo đơn kèm items/variant, tính tổng, admin cập nhật trạng thái', async () => {
     const category = await http()
       .post('/api/v1/categories')
       .set(bearer())
@@ -93,6 +93,7 @@ describe('Orders (e2e)', () => {
       });
     expect(productA.status).toBe(201);
     createdProductIds.push(productA.body.data.id as string);
+    const variantAId = productA.body.data.variants[0].id as string;
 
     const productB = await http()
       .post('/api/v1/products')
@@ -120,36 +121,84 @@ describe('Orders (e2e)', () => {
       });
     expect(productB.status).toBe(201);
     createdProductIds.push(productB.body.data.id as string);
+    const variantBId = productB.body.data.variants[0].id as string;
 
     const phone = `090${suffix.slice(-7)}`;
     const created = await http()
       .post('/api/v1/public/orders/create')
       .send({
+        items: [
+          {
+            productId: productA.body.data.id,
+            variantId: variantAId,
+            quantity: 1,
+          },
+          {
+            productId: productB.body.data.id,
+            variantId: variantBId,
+            quantity: 1,
+          },
+        ],
         email: `order-${suffix}@example.com`,
         phone,
-        shippingAddress: '12 Lê Lợi, Q.1',
         fullName: 'Khách Mock',
+        fulfillmentMethod: 'DELIVERY',
+        shippingAddress: '12 Lê Lợi, Q.1',
         paymentMethod: 'BANK_TRANSFER',
         paymentImageUrl: 'https://cdn.example.com/uploads/orders/bill.jpg',
         deliveryDate: '2026-11-25',
         deliveryTime: '09:00-11:00',
         note: 'Giao buổi sáng',
-        productIds: [productA.body.data.id, productB.body.data.id],
       });
     expect(created.status).toBe(201);
     expect(created.body.data.status).toBe('PENDING_CONFIRMATION');
+    expect(created.body.data.fulfillmentMethod).toBe('DELIVERY');
     expect(created.body.data.deliveryDate).toBe('2026-11-25');
     expect(created.body.data.totalAmount).toBe('250000.00');
-    expect(created.body.data.products).toHaveLength(2);
+    expect(created.body.data.items).toHaveLength(2);
     createdOrderIds.push(created.body.data.id as string);
+
+    const pickup = await http()
+      .post('/api/v1/public/orders/create')
+      .send({
+        items: [
+          {
+            productId: productA.body.data.id,
+            variantId: variantAId,
+            quantity: 2,
+          },
+        ],
+        fullName: 'Nguyễn Văn A',
+        phone: `092${suffix.slice(-7)}`,
+        email: `pickup-${suffix}@example.com`,
+        fulfillmentMethod: 'PICKUP',
+        shippingAddress: null,
+        deliveryDate: '2026-11-25',
+        deliveryTime: '14:00-16:00',
+        paymentMethod: 'AT_STORE',
+        note: 'Nhận bánh tại cửa hàng',
+      });
+    expect(pickup.status).toBe(201);
+    expect(pickup.body.data.fulfillmentMethod).toBe('PICKUP');
+    expect(pickup.body.data.shippingAddress).toBeNull();
+    expect(pickup.body.data.totalAmount).toBe('300000.00');
+    createdOrderIds.push(pickup.body.data.id as string);
 
     const missingDate = await http()
       .post('/api/v1/public/orders/create')
       .send({
+        items: [
+          {
+            productId: productA.body.data.id,
+            variantId: variantAId,
+            quantity: 1,
+          },
+        ],
+        fullName: 'Khách',
         phone: `091${suffix.slice(-7)}`,
+        fulfillmentMethod: 'DELIVERY',
         shippingAddress: '34 Hai Bà Trưng',
         paymentMethod: 'BANK_TRANSFER',
-        productIds: [productA.body.data.id],
       });
     expect(missingDate.status).toBe(400);
     expect(missingDate.body.message).toBe(MESSAGES.DELIVERY_DATE_REQUIRED);
@@ -186,10 +235,9 @@ describe('Orders (e2e)', () => {
       .set(bearer());
     expect(detail.status).toBe(200);
     expect(detail.body.data.phone).toBe(phone);
-    expect(detail.body.data.productIds).toEqual([
-      productA.body.data.id,
-      productB.body.data.id,
-    ]);
+    expect(
+      detail.body.data.items.map((item: { productId: string }) => item.productId),
+    ).toEqual([productA.body.data.id, productB.body.data.id]);
 
     const updated = await http()
       .put(`/api/v1/orders/${created.body.data.id}/update`)

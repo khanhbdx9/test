@@ -20,6 +20,7 @@ const api_standard_response_decorator_1 = require("../../common/decorators/api-s
 const permissions_decorator_1 = require("../../common/decorators/permissions.decorator");
 const response_message_decorator_1 = require("../../common/decorators/response-message.decorator");
 const order_response_dto_1 = require("./dto/order-response.dto");
+const query_order_history_dto_1 = require("./dto/query-order-history.dto");
 const query_order_dto_1 = require("./dto/query-order.dto");
 const update_order_status_dto_1 = require("./dto/update-order-status.dto");
 const orders_service_1 = require("./orders.service");
@@ -30,6 +31,9 @@ let OrdersController = class OrdersController {
     }
     findAll(query) {
         return this.ordersService.findAll(query);
+    }
+    findHistory(query) {
+        return this.ordersService.findHistory(query);
     }
     findOne(id) {
         return this.ordersService.findOne(id);
@@ -43,7 +47,9 @@ __decorate([
     (0, common_1.Get)(),
     (0, permissions_decorator_1.Permissions)('orders.view'),
     (0, response_message_decorator_1.ResponseMessage)(messages_1.MESSAGES.FETCH_SUCCESS),
-    (0, swagger_1.ApiOperation)({ summary: 'Danh sách đơn hàng' }),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Danh sách đơn hàng (bắt buộc page, limit, createdFrom, createdTo)',
+    }),
     (0, api_standard_response_decorator_1.ApiStandardPaginatedResponse)({
         type: order_response_dto_1.OrderResponseDto,
         description: messages_1.MESSAGES.FETCH_SUCCESS,
@@ -54,6 +60,23 @@ __decorate([
     __metadata("design:paramtypes", [query_order_dto_1.QueryOrderDto]),
     __metadata("design:returntype", void 0)
 ], OrdersController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('history'),
+    (0, permissions_decorator_1.Permissions)('orders.view'),
+    (0, response_message_decorator_1.ResponseMessage)(messages_1.MESSAGES.FETCH_SUCCESS),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Lịch sử đơn (REJECTED|COMPLETED; bắt buộc page, limit, createdFrom, createdTo)',
+    }),
+    (0, api_standard_response_decorator_1.ApiStandardPaginatedResponse)({
+        type: order_response_dto_1.OrderResponseDto,
+        description: messages_1.MESSAGES.FETCH_SUCCESS,
+    }),
+    (0, api_standard_response_decorator_1.ApiStandardErrorResponse)(),
+    __param(0, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [query_order_history_dto_1.QueryOrderHistoryDto]),
+    __metadata("design:returntype", void 0)
+], OrdersController.prototype, "findHistory", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, permissions_decorator_1.Permissions)('orders.view'),

@@ -6,6 +6,10 @@ const PAYMENT_LABEL = {
     AT_STORE: 'Thanh toán tại cửa hàng',
     BANK_TRANSFER: 'Chuyển khoản',
 };
+const FULFILLMENT_LABEL = {
+    PICKUP: 'Nhận tại cửa hàng',
+    DELIVERY: 'Giao tận nơi',
+};
 const STATUS_LABEL = {
     PENDING_CONFIRMATION: 'Chờ xác nhận',
     REJECTED: 'Từ chối',
@@ -38,17 +42,19 @@ function formatDateTime(value) {
         timeStyle: 'short',
     }).format(value);
 }
-function productRows(products) {
-    if (products.length === 0) {
-        return `<tr><td colspan="3" style="padding:12px;border-bottom:1px solid #eee;color:#666;">Không có sản phẩm</td></tr>`;
+function productRows(items) {
+    if (items.length === 0) {
+        return `<tr><td colspan="4" style="padding:12px;border-bottom:1px solid #eee;color:#666;">Không có sản phẩm</td></tr>`;
     }
-    return products
-        .map((product, index) => {
-        const name = escapeHtml(product.name);
-        const sku = escapeHtml(product.sku);
-        const price = escapeHtml(formatMoney(product.unitPrice));
-        const thumb = product.imageUrl
-            ? `<img src="${escapeHtml(product.imageUrl)}" alt="${name}" width="48" height="48" style="display:block;border-radius:6px;object-fit:cover;border:1px solid #eee;" />`
+    return items
+        .map((item, index) => {
+        const name = escapeHtml(item.productName);
+        const sku = escapeHtml(item.variantSku);
+        const meta = escapeHtml(`${item.size} · ${item.style}`);
+        const qty = escapeHtml(String(item.quantity));
+        const price = escapeHtml(formatMoney(item.lineTotal));
+        const thumb = item.imageUrl
+            ? `<img src="${escapeHtml(item.imageUrl)}" alt="${name}" width="48" height="48" style="display:block;border-radius:6px;object-fit:cover;border:1px solid #eee;" />`
             : `<div style="width:48px;height:48px;border-radius:6px;background:#f3f1ec;border:1px solid #eee;"></div>`;
         return `<tr>
   <td style="padding:12px 8px;border-bottom:1px solid #eee;vertical-align:top;">${index + 1}</td>
@@ -58,9 +64,11 @@ function productRows(products) {
       <td style="vertical-align:top;">
         <div style="font-weight:600;color:#1f1a17;">${name}</div>
         <div style="font-size:12px;color:#6b6560;margin-top:4px;">SKU: ${sku}</div>
+        <div style="font-size:12px;color:#6b6560;margin-top:2px;">${meta}</div>
       </td>
     </tr></table>
   </td>
+  <td style="padding:12px 8px;border-bottom:1px solid #eee;text-align:center;vertical-align:top;">${qty}</td>
   <td style="padding:12px 8px;border-bottom:1px solid #eee;text-align:right;vertical-align:top;white-space:nowrap;">${price}</td>
 </tr>`;
     })
@@ -77,7 +85,8 @@ function buildOrderNotificationText(order) {
         `- Họ tên: ${order.fullName ?? '-'}`,
         `- SĐT: ${order.phone}`,
         `- Email: ${order.email ?? '-'}`,
-        `- Địa chỉ: ${order.shippingAddress}`,
+        `- Hình thức: ${FULFILLMENT_LABEL[order.fulfillmentMethod]}`,
+        `- Địa chỉ: ${order.shippingAddress ?? '-'}`,
         '',
         'Thanh toán & giao hàng',
         `- Phương thức: ${PAYMENT_LABEL[order.paymentMethod]}`,
@@ -87,7 +96,7 @@ function buildOrderNotificationText(order) {
         `- Ghi chú: ${order.note ?? '-'}`,
         '',
         'Sản phẩm',
-        ...order.products.map((product, index) => `${index + 1}. ${product.name} (${product.sku}) — ${formatMoney(product.unitPrice)}`),
+        ...order.items.map((item, index) => `${index + 1}. ${item.productName} (${item.variantSku}) x${item.quantity} — ${formatMoney(item.lineTotal)}`),
         '',
         `Tổng tiền: ${formatMoney(order.totalAmount)}`,
     ];
@@ -97,7 +106,8 @@ function buildOrderNotificationHtml(order) {
     const fullName = escapeHtml(order.fullName ?? '-');
     const phone = escapeHtml(order.phone);
     const email = escapeHtml(order.email ?? '-');
-    const address = escapeHtml(order.shippingAddress);
+    const address = escapeHtml(order.shippingAddress ?? '-');
+    const fulfillment = escapeHtml(FULFILLMENT_LABEL[order.fulfillmentMethod]);
     const note = escapeHtml(order.note ?? '-');
     const deliveryDate = escapeHtml(order.deliveryDate ?? '-');
     const deliveryTime = escapeHtml(order.deliveryTime ?? '-');
@@ -148,6 +158,7 @@ function buildOrderNotificationHtml(order) {
                 <tr><td style="padding:10px 12px;border-bottom:1px solid #eee;width:140px;color:#6b6560;">Họ tên</td><td style="padding:10px 12px;border-bottom:1px solid #eee;">${fullName}</td></tr>
                 <tr><td style="padding:10px 12px;border-bottom:1px solid #eee;color:#6b6560;">Số điện thoại</td><td style="padding:10px 12px;border-bottom:1px solid #eee;">${phone}</td></tr>
                 <tr><td style="padding:10px 12px;border-bottom:1px solid #eee;color:#6b6560;">Email</td><td style="padding:10px 12px;border-bottom:1px solid #eee;">${email}</td></tr>
+                <tr><td style="padding:10px 12px;border-bottom:1px solid #eee;color:#6b6560;">Nhận hàng</td><td style="padding:10px 12px;border-bottom:1px solid #eee;">${fulfillment}</td></tr>
                 <tr><td style="padding:10px 12px;color:#6b6560;">Địa chỉ giao</td><td style="padding:10px 12px;">${address}</td></tr>
               </table>
 
@@ -165,9 +176,10 @@ function buildOrderNotificationHtml(order) {
                 <tr style="background:#faf7f3;">
                   <th align="left" style="padding:10px 8px;font-size:12px;color:#6b6560;font-weight:600;">#</th>
                   <th align="left" style="padding:10px 8px;font-size:12px;color:#6b6560;font-weight:600;">Sản phẩm</th>
-                  <th align="right" style="padding:10px 8px;font-size:12px;color:#6b6560;font-weight:600;">Giá</th>
+                  <th align="center" style="padding:10px 8px;font-size:12px;color:#6b6560;font-weight:600;">SL</th>
+                  <th align="right" style="padding:10px 8px;font-size:12px;color:#6b6560;font-weight:600;">Thành tiền</th>
                 </tr>
-                ${productRows(order.products)}
+                ${productRows(order.items)}
               </table>
 
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;">

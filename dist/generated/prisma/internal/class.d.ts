@@ -60,6 +60,9 @@ export interface PrismaClient<in LogOpts extends Prisma.LogLevel = never, in out
     get order(): Prisma.OrderDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;
+    get orderItem(): Prisma.OrderItemDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
     get systemConfig(): Prisma.SystemConfigDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;

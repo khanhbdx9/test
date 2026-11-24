@@ -61,6 +61,7 @@ export const ModelName = {
   ProductImage: 'ProductImage',
   ProductVariant: 'ProductVariant',
   Order: 'Order',
+  OrderItem: 'OrderItem',
   SystemConfig: 'SystemConfig',
   Theme: 'Theme',
   Banner: 'Banner',
@@ -228,16 +229,36 @@ export const OrderScalarFieldEnum = {
   note: 'note',
   paymentMethod: 'paymentMethod',
   paymentImageUrl: 'paymentImageUrl',
+  fulfillmentMethod: 'fulfillmentMethod',
   status: 'status',
   deliveryDate: 'deliveryDate',
   deliveryTime: 'deliveryTime',
-  productIds: 'productIds',
   totalAmount: 'totalAmount',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type OrderScalarFieldEnum = (typeof OrderScalarFieldEnum)[keyof typeof OrderScalarFieldEnum]
+
+
+export const OrderItemScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  productId: 'productId',
+  variantId: 'variantId',
+  quantity: 'quantity',
+  unitPrice: 'unitPrice',
+  productName: 'productName',
+  productSku: 'productSku',
+  variantSku: 'variantSku',
+  size: 'size',
+  style: 'style',
+  imageUrl: 'imageUrl',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OrderItemScalarFieldEnum = (typeof OrderItemScalarFieldEnum)[keyof typeof OrderItemScalarFieldEnum]
 
 
 export const SystemConfigScalarFieldEnum = {

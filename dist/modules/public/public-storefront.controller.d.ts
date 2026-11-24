@@ -11,7 +11,7 @@ import { PostResponseDto } from '../posts/dto/post-response.dto';
 import { QueryPublicPostDto, QueryRelatedPostDto } from '../posts/dto/query-post.dto';
 import { PostsService } from '../posts/posts.service';
 import { ProductResponseDto } from '../products/dto/product-response.dto';
-import { QueryPublicProductDto, QueryRelatedProductDto } from '../products/dto/query-public-product.dto';
+import { QueryPublicCategoryProductDto, QueryPublicProductDto, QueryRelatedProductDto } from '../products/dto/query-public-product.dto';
 import { ProductsService } from '../products/products.service';
 import { ThemeResponseDto } from '../themes/dto/theme-response.dto';
 import { ThemesService } from '../themes/themes.service';
@@ -31,8 +31,16 @@ export declare class PublicStorefrontController {
         items: CategoryResponseDto[];
         pagination: ReturnType<typeof import("../../common/utils/pagination.util").buildPagination>;
     }>;
+    findCategoryProducts(categorySlug: string, query: QueryPublicCategoryProductDto): Promise<{
+        items: ProductResponseDto[];
+        pagination: ReturnType<typeof import("../../common/utils/pagination.util").buildPagination>;
+    }>;
     findCategory(id: string): Promise<CategoryResponseDto>;
     findProducts(query: QueryPublicProductDto): Promise<{
+        items: ProductResponseDto[];
+        pagination: ReturnType<typeof import("../../common/utils/pagination.util").buildPagination>;
+    }>;
+    findRelatedOtherCategoryProducts(categorySlug: string): Promise<{
         items: ProductResponseDto[];
         pagination: ReturnType<typeof import("../../common/utils/pagination.util").buildPagination>;
     }>;

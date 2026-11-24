@@ -13,40 +13,12 @@ exports.QueryOrderDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
-const pagination_query_dto_1 = require("../../../common/dto/pagination-query.dto");
 const client_1 = require("../../../generated/prisma/client");
-class QueryOrderDto extends pagination_query_dto_1.PaginationQueryDto {
-    deliveryDate;
-    deliveryTime;
-    search;
+const query_order_list_base_dto_1 = require("./query-order-list.base.dto");
+class QueryOrderDto extends query_order_list_base_dto_1.QueryOrderListBaseDto {
     status;
-    sortCreated = 'desc';
 }
 exports.QueryOrderDto = QueryOrderDto;
-__decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: '2026-11-20' }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsDateString)({}, { message: 'Ngày giao hàng không hợp lệ' }),
-    __metadata("design:type", String)
-], QueryOrderDto.prototype, "deliveryDate", void 0);
-__decorate([
-    (0, swagger_1.ApiPropertyOptional)({ example: '09:00-11:00' }),
-    (0, class_transformer_1.Transform)(({ value }) => typeof value === 'string' ? value.trim() : value),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.MaxLength)(50),
-    __metadata("design:type", String)
-], QueryOrderDto.prototype, "deliveryTime", void 0);
-__decorate([
-    (0, swagger_1.ApiPropertyOptional)({
-        description: 'Tìm theo số điện thoại hoặc email',
-    }),
-    (0, class_transformer_1.Transform)(({ value }) => typeof value === 'string' ? value.trim() : value),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.MaxLength)(255),
-    __metadata("design:type", String)
-], QueryOrderDto.prototype, "search", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({
         enum: client_1.OrderStatus,
@@ -64,15 +36,4 @@ __decorate([
     (0, class_validator_1.IsEnum)(client_1.OrderStatus, { each: true, message: 'Trạng thái không hợp lệ' }),
     __metadata("design:type", Array)
 ], QueryOrderDto.prototype, "status", void 0);
-__decorate([
-    (0, swagger_1.ApiPropertyOptional)({
-        enum: ['asc', 'desc'],
-        default: 'desc',
-        description: 'Sort theo createdAt',
-    }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsIn)(['asc', 'desc']),
-    (0, class_transformer_1.Type)(() => String),
-    __metadata("design:type", String)
-], QueryOrderDto.prototype, "sortCreated", void 0);
 //# sourceMappingURL=query-order.dto.js.map

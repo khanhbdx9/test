@@ -24,6 +24,11 @@ export declare const PaymentMethod: {
     readonly BANK_TRANSFER: "BANK_TRANSFER";
 };
 export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod];
+export declare const FulfillmentMethod: {
+    readonly PICKUP: "PICKUP";
+    readonly DELIVERY: "DELIVERY";
+};
+export type FulfillmentMethod = (typeof FulfillmentMethod)[keyof typeof FulfillmentMethod];
 export declare const OrderStatus: {
     readonly PENDING_CONFIRMATION: "PENDING_CONFIRMATION";
     readonly REJECTED: "REJECTED";

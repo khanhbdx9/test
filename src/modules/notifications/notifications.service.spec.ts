@@ -29,8 +29,7 @@ describe('NotificationsService', () => {
       phone: '0901234567',
       fullName: 'An',
       totalAmount: '150000.00',
-      productIds: ['p1'],
-      products: [{ id: 'p1' }],
+      items: [{ productId: 'p1' }],
     } as never);
 
     expect(prisma.notification.createMany).toHaveBeenCalledWith(

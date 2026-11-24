@@ -3,7 +3,7 @@ import { PrismaService } from '../../database/prisma/prisma.service';
 import { ProductResponseDto } from './dto/product-response.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { QueryProductDto } from './dto/query-product.dto';
-import { QueryPublicProductDto, QueryRelatedProductDto } from './dto/query-public-product.dto';
+import { QueryPublicCategoryProductDto, QueryPublicProductDto, QueryRelatedProductDto } from './dto/query-public-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UploadsService } from '../uploads/uploads.service';
 export declare class ProductsService {
@@ -18,8 +18,16 @@ export declare class ProductsService {
         items: ProductResponseDto[];
         pagination: ReturnType<typeof buildPagination>;
     }>;
+    findPublishedByCategory(categorySlug: string, query: QueryPublicCategoryProductDto): Promise<{
+        items: ProductResponseDto[];
+        pagination: ReturnType<typeof buildPagination>;
+    }>;
     findPublishedBySlug(categorySlug: string, productSlug: string): Promise<ProductResponseDto>;
     findRelated(categorySlug: string, productSlug: string, query: QueryRelatedProductDto): Promise<{
+        items: ProductResponseDto[];
+        pagination: ReturnType<typeof buildPagination>;
+    }>;
+    findRelatedOtherCategories(categorySlug: string): Promise<{
         items: ProductResponseDto[];
         pagination: ReturnType<typeof buildPagination>;
     }>;
@@ -32,6 +40,8 @@ export declare class ProductsService {
     private getActive;
     private assertCategory;
     private resolvePublicCategoryId;
+    private getPublishedProductRef;
+    private findRelatedSameCategory;
     private toMoney;
     private assertSalePrice;
     private resolveSlug;

@@ -1,9 +1,5 @@
-import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
 import { OrderStatus } from '../../../generated/prisma/client';
-export declare class QueryOrderDto extends PaginationQueryDto {
-    deliveryDate?: string;
-    deliveryTime?: string;
-    search?: string;
+import { QueryOrderListBaseDto } from './query-order-list.base.dto';
+export declare class QueryOrderDto extends QueryOrderListBaseDto {
     status?: OrderStatus[];
-    sortCreated?: 'asc' | 'desc';
 }

@@ -95,6 +95,14 @@ describe('Notifications, posts, public search (e2e)', () => {
         images: [
           { url: 'https://cdn.example.com/search.jpg', isCover: true },
         ],
+        variants: [
+          {
+            sku: `SRCH-${suffix}-S`,
+            size: 'S',
+            style: 'Tròn',
+            price: '250000',
+          },
+        ],
       });
     expect(product.status).toBe(201);
     createdProductIds.push(product.body.data.id as string);
@@ -102,11 +110,18 @@ describe('Notifications, posts, public search (e2e)', () => {
     const order = await http()
       .post('/api/v1/public/orders/create')
       .send({
+        items: [
+          {
+            productId: product.body.data.id,
+            variantId: product.body.data.variants[0].id,
+            quantity: 1,
+          },
+        ],
         phone: `091${suffix.slice(-7)}`,
-        shippingAddress: '123 Test',
         fullName: 'Khách Test',
+        fulfillmentMethod: 'DELIVERY',
+        shippingAddress: '123 Test',
         paymentMethod: 'AT_STORE',
-        productIds: [product.body.data.id],
       });
     expect(order.status).toBe(201);
     createdOrderIds.push(order.body.data.id as string);

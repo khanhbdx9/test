@@ -1,21 +1,43 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  FulfillmentMethod,
   OrderStatus,
   PaymentMethod,
 } from '../../../generated/prisma/client';
 
-export class OrderProductItemDto {
+export class OrderItemResponseDto {
   @ApiProperty()
   id!: string;
 
   @ApiProperty()
-  sku!: string;
+  productId!: string;
 
   @ApiProperty()
-  name!: string;
+  variantId!: string;
 
-  @ApiProperty({ description: 'Giá hiệu lực (salePrice ?? price)' })
+  @ApiProperty()
+  quantity!: number;
+
+  @ApiProperty({ description: 'Đơn giá hiệu lực (salePrice ?? price) của biến thể' })
   unitPrice!: string;
+
+  @ApiProperty({ description: 'Thành tiền = unitPrice * quantity' })
+  lineTotal!: string;
+
+  @ApiProperty()
+  productName!: string;
+
+  @ApiProperty()
+  productSku!: string;
+
+  @ApiProperty()
+  variantSku!: string;
+
+  @ApiProperty()
+  size!: string;
+
+  @ApiProperty()
+  style!: string;
 
   @ApiPropertyOptional({ nullable: true })
   imageUrl!: string | null;
@@ -31,8 +53,8 @@ export class OrderResponseDto {
   @ApiProperty()
   phone!: string;
 
-  @ApiProperty()
-  shippingAddress!: string;
+  @ApiPropertyOptional({ nullable: true })
+  shippingAddress!: string | null;
 
   @ApiPropertyOptional({ nullable: true })
   fullName!: string | null;
@@ -45,6 +67,9 @@ export class OrderResponseDto {
 
   @ApiPropertyOptional({ nullable: true })
   paymentImageUrl!: string | null;
+
+  @ApiProperty({ enum: FulfillmentMethod })
+  fulfillmentMethod!: FulfillmentMethod;
 
   @ApiProperty({ enum: OrderStatus })
   status!: OrderStatus;
@@ -59,14 +84,11 @@ export class OrderResponseDto {
   @ApiPropertyOptional({ nullable: true })
   deliveryTime!: string | null;
 
-  @ApiProperty({ type: [String] })
-  productIds!: string[];
-
   @ApiProperty({ example: '450000.00' })
   totalAmount!: string;
 
-  @ApiProperty({ type: [OrderProductItemDto] })
-  products!: OrderProductItemDto[];
+  @ApiProperty({ type: [OrderItemResponseDto] })
+  items!: OrderItemResponseDto[];
 
   @ApiProperty()
   createdAt!: Date;

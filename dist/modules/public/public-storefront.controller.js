@@ -59,11 +59,17 @@ let PublicStorefrontController = class PublicStorefrontController {
     findCategories(query) {
         return this.categoriesService.findVisible(query);
     }
+    findCategoryProducts(categorySlug, query) {
+        return this.productsService.findPublishedByCategory(categorySlug, query);
+    }
     findCategory(id) {
         return this.categoriesService.findVisibleOne(id);
     }
     findProducts(query) {
         return this.productsService.findPublished(query);
+    }
+    findRelatedOtherCategoryProducts(categorySlug) {
+        return this.productsService.findRelatedOtherCategories(categorySlug);
     }
     findRelatedProducts(categorySlug, productSlug, query) {
         return this.productsService.findRelated(categorySlug, productSlug, query);
@@ -109,6 +115,23 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], PublicStorefrontController.prototype, "findCategories", null);
 __decorate([
+    (0, common_1.Get)('categories/:categorySlug/products'),
+    (0, response_message_decorator_1.ResponseMessage)(messages_1.MESSAGES.FETCH_SUCCESS),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Danh sách sản phẩm theo categorySlug (phân trang, tìm kiếm tên/SKU/slug)',
+    }),
+    (0, api_standard_response_decorator_1.ApiStandardPaginatedResponse)({
+        type: product_response_dto_1.ProductResponseDto,
+        description: messages_1.MESSAGES.FETCH_SUCCESS,
+    }),
+    (0, api_standard_response_decorator_1.ApiStandardErrorResponse)(),
+    __param(0, (0, common_1.Param)('categorySlug')),
+    __param(1, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, query_public_product_dto_1.QueryPublicCategoryProductDto]),
+    __metadata("design:returntype", void 0)
+], PublicStorefrontController.prototype, "findCategoryProducts", null);
+__decorate([
     (0, common_1.Get)('categories/:id'),
     (0, response_message_decorator_1.ResponseMessage)(messages_1.MESSAGES.FETCH_SUCCESS),
     (0, swagger_1.ApiOperation)({ summary: 'Chi tiết danh mục đang hiển thị' }),
@@ -138,6 +161,22 @@ __decorate([
     __metadata("design:paramtypes", [query_public_product_dto_1.QueryPublicProductDto]),
     __metadata("design:returntype", void 0)
 ], PublicStorefrontController.prototype, "findProducts", null);
+__decorate([
+    (0, common_1.Get)('products/:categorySlug/related-other'),
+    (0, response_message_decorator_1.ResponseMessage)(messages_1.MESSAGES.FETCH_SUCCESS),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Tối đa 10 sản phẩm từ các danh mục khác categorySlug (mỗi category ≥1 nếu có)',
+    }),
+    (0, api_standard_response_decorator_1.ApiStandardPaginatedResponse)({
+        type: product_response_dto_1.ProductResponseDto,
+        description: messages_1.MESSAGES.FETCH_SUCCESS,
+    }),
+    (0, api_standard_response_decorator_1.ApiStandardErrorResponse)(),
+    __param(0, (0, common_1.Param)('categorySlug')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], PublicStorefrontController.prototype, "findRelatedOtherCategoryProducts", null);
 __decorate([
     (0, common_1.Get)('products/:categorySlug/:productSlug/related'),
     (0, response_message_decorator_1.ResponseMessage)(messages_1.MESSAGES.FETCH_SUCCESS),

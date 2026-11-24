@@ -50,6 +50,14 @@ export const PaymentMethod = {
 export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod]
 
 
+export const FulfillmentMethod = {
+  PICKUP: 'PICKUP',
+  DELIVERY: 'DELIVERY'
+} as const
+
+export type FulfillmentMethod = (typeof FulfillmentMethod)[keyof typeof FulfillmentMethod]
+
+
 export const OrderStatus = {
   PENDING_CONFIRMATION: 'PENDING_CONFIRMATION',
   REJECTED: 'REJECTED',

@@ -16,6 +16,7 @@ export type Product = Prisma.ProductModel;
 export type ProductImage = Prisma.ProductImageModel;
 export type ProductVariant = Prisma.ProductVariantModel;
 export type Order = Prisma.OrderModel;
+export type OrderItem = Prisma.OrderItemModel;
 export type SystemConfig = Prisma.SystemConfigModel;
 export type Theme = Prisma.ThemeModel;
 export type Banner = Prisma.BannerModel;

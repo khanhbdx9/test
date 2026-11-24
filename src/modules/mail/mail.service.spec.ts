@@ -1,5 +1,9 @@
 import { MailService } from './mail.service';
-import { OrderStatus, PaymentMethod } from '../../generated/prisma/client';
+import {
+  FulfillmentMethod,
+  OrderStatus,
+  PaymentMethod,
+} from '../../generated/prisma/client';
 import { SYSTEM_CONFIG_KEYS } from '../system-configs/system-config.keys';
 
 describe('MailService', () => {
@@ -14,22 +18,29 @@ describe('MailService', () => {
     id: '11111111-1111-4111-8111-111111111111',
     email: null,
     phone: '0901234567',
-    shippingAddress: 'A',
-    fullName: null,
+    shippingAddress: null,
+    fullName: 'Khách',
     note: null,
     paymentMethod: PaymentMethod.AT_STORE,
     paymentImageUrl: null,
+    fulfillmentMethod: FulfillmentMethod.PICKUP,
     status: OrderStatus.PENDING_CONFIRMATION,
     deliveryDate: null,
     deliveryTime: null,
-    productIds: ['22222222-2222-4222-8222-222222222222'],
     totalAmount: '100000.00',
-    products: [
+    items: [
       {
-        id: '22222222-2222-4222-8222-222222222222',
-        sku: 'P1',
-        name: 'Bánh',
+        id: 'item-1',
+        productId: '22222222-2222-4222-8222-222222222222',
+        variantId: '33333333-3333-4333-8333-333333333333',
+        quantity: 1,
         unitPrice: '100000.00',
+        lineTotal: '100000.00',
+        productName: 'Bánh',
+        productSku: 'P1',
+        variantSku: 'P1-S',
+        size: 'S',
+        style: 'Tròn',
         imageUrl: null,
       },
     ],
@@ -68,4 +79,3 @@ describe('MailService', () => {
     expect(service.parseNotificationEmails('  ;  ')).toEqual([]);
   });
 });
-

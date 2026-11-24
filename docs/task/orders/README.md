@@ -3,7 +3,7 @@
 ## Database
 
 - `database/orders.md`
-- `database/order-items.md` — bỏ qua (phase đơn giản dùng `productIds`)
+- `database/order-items.md`
 - `database/order-status-histories.md` — bỏ qua
 
 ## Feature

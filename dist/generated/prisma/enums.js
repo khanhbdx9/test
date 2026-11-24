@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PostStatus = exports.NotificationType = exports.OrderStatus = exports.PaymentMethod = exports.VariantStatus = exports.ProductStatus = exports.CategoryStatus = exports.UserStatus = void 0;
+exports.PostStatus = exports.NotificationType = exports.OrderStatus = exports.FulfillmentMethod = exports.PaymentMethod = exports.VariantStatus = exports.ProductStatus = exports.CategoryStatus = exports.UserStatus = void 0;
 exports.UserStatus = {
     ACTIVE: 'ACTIVE',
     LOCKED: 'LOCKED'
@@ -21,6 +21,10 @@ exports.VariantStatus = {
 exports.PaymentMethod = {
     AT_STORE: 'AT_STORE',
     BANK_TRANSFER: 'BANK_TRANSFER'
+};
+exports.FulfillmentMethod = {
+    PICKUP: 'PICKUP',
+    DELIVERY: 'DELIVERY'
 };
 exports.OrderStatus = {
     PENDING_CONFIRMATION: 'PENDING_CONFIRMATION',

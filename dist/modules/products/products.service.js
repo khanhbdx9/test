@@ -131,6 +131,16 @@ let ProductsService = class ProductsService {
             status: client_1.ProductStatus.PUBLISHED,
         });
     }
+    async findPublishedByCategory(categorySlug, query) {
+        const resolvedCategoryId = await this.resolvePublicCategoryId(undefined, categorySlug);
+        return this.findAll({
+            page: query.page,
+            limit: query.limit,
+            search: query.search,
+            categoryId: resolvedCategoryId,
+            status: client_1.ProductStatus.PUBLISHED,
+        });
+    }
     async findPublishedBySlug(categorySlug, productSlug) {
         const product = await this.prisma.product.findFirst({
             where: {
@@ -151,43 +161,57 @@ let ProductsService = class ProductsService {
         return this.toResponse(product);
     }
     async findRelated(categorySlug, productSlug, query) {
-        const current = await this.prisma.product.findFirst({
+        const current = await this.getPublishedProductRef(categorySlug, productSlug);
+        return this.findRelatedSameCategory(current, query);
+    }
+    async findRelatedOtherCategories(categorySlug) {
+        await this.resolvePublicCategoryId(undefined, categorySlug);
+        const products = await this.prisma.product.findMany({
             where: {
                 deletedAt: null,
                 status: client_1.ProductStatus.PUBLISHED,
-                slug: productSlug,
                 category: {
-                    slug: categorySlug,
                     deletedAt: null,
                     status: client_1.CategoryStatus.VISIBLE,
+                    slug: { not: categorySlug },
                 },
             },
-            select: { id: true, categoryId: true },
+            select: productSelect,
+            orderBy: publicListOrder,
         });
-        if (!current) {
-            throw new common_1.NotFoundException();
+        const byCategory = new Map();
+        for (const product of products) {
+            const list = byCategory.get(product.categoryId);
+            if (list) {
+                list.push(product);
+            }
+            else {
+                byCategory.set(product.categoryId, [product]);
+            }
         }
-        const page = query.page ?? 1;
-        const limit = query.limit ?? 10;
-        const where = {
-            deletedAt: null,
-            status: client_1.ProductStatus.PUBLISHED,
-            categoryId: current.categoryId,
-            id: { not: current.id },
-        };
-        const [total, items] = await this.prisma.$transaction([
-            this.prisma.product.count({ where }),
-            this.prisma.product.findMany({
-                where,
-                select: productSelect,
-                orderBy: publicListOrder,
-                skip: (page - 1) * limit,
-                take: limit,
-            }),
-        ]);
+        const max = 10;
+        const groups = [...byCategory.values()];
+        const selected = [];
+        let round = 0;
+        while (selected.length < max) {
+            let addedInRound = false;
+            for (const group of groups) {
+                if (round < group.length) {
+                    selected.push(group[round]);
+                    addedInRound = true;
+                    if (selected.length >= max) {
+                        break;
+                    }
+                }
+            }
+            if (!addedInRound) {
+                break;
+            }
+            round += 1;
+        }
         return {
-            items: items.map((item) => this.toResponse(item)),
-            pagination: (0, pagination_util_1.buildPagination)(page, limit, total),
+            items: selected.map((item) => this.toResponse(item)),
+            pagination: (0, pagination_util_1.buildPagination)(1, max, selected.length),
         };
     }
     async findOne(id) {
@@ -381,6 +405,53 @@ let ProductsService = class ProductsService {
             throw new common_1.NotFoundException();
         }
         return category.id;
+    }
+    async getPublishedProductRef(categorySlug, productSlug) {
+        const current = await this.prisma.product.findFirst({
+            where: {
+                deletedAt: null,
+                status: client_1.ProductStatus.PUBLISHED,
+                slug: productSlug,
+                category: {
+                    slug: categorySlug,
+                    deletedAt: null,
+                    status: client_1.CategoryStatus.VISIBLE,
+                },
+            },
+            select: { id: true, categoryId: true },
+        });
+        if (!current) {
+            throw new common_1.NotFoundException();
+        }
+        return current;
+    }
+    async findRelatedSameCategory(current, query) {
+        const page = query.page ?? 1;
+        const limit = query.limit ?? 10;
+        const where = {
+            deletedAt: null,
+            status: client_1.ProductStatus.PUBLISHED,
+            id: { not: current.id },
+            categoryId: current.categoryId,
+            category: {
+                deletedAt: null,
+                status: client_1.CategoryStatus.VISIBLE,
+            },
+        };
+        const [total, items] = await this.prisma.$transaction([
+            this.prisma.product.count({ where }),
+            this.prisma.product.findMany({
+                where,
+                select: productSelect,
+                orderBy: publicListOrder,
+                skip: (page - 1) * limit,
+                take: limit,
+            }),
+        ]);
+        return {
+            items: items.map((item) => this.toResponse(item)),
+            pagination: (0, pagination_util_1.buildPagination)(page, limit, total),
+        };
     }
     toMoney(value) {
         if (value === undefined || value === null) {

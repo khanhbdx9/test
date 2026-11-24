@@ -17,6 +17,7 @@ const prisma_service_1 = require("../../database/prisma/prisma.service");
 const client_1 = require("../../generated/prisma/client");
 const mail_service_1 = require("../mail/mail.service");
 const notifications_service_1 = require("../notifications/notifications.service");
+const query_order_history_dto_1 = require("./dto/query-order-history.dto");
 let OrdersService = class OrdersService {
     prisma;
     mailService;
@@ -28,26 +29,43 @@ let OrdersService = class OrdersService {
     }
     async createPublic(dto) {
         this.assertDeliveryDate(dto.paymentMethod, dto.deliveryDate);
-        const productIds = this.normalizeProductIds(dto.productIds);
-        const priced = await this.loadPricedProducts(productIds);
-        const totalAmount = priced.reduce((sum, item) => sum.add(item.unitPrice), new client_1.Prisma.Decimal(0));
+        this.assertShippingAddress(dto.fulfillmentMethod, dto.shippingAddress);
+        const resolvedItems = await this.resolveOrderItems(dto.items);
+        const totalAmount = resolvedItems.reduce((sum, item) => sum.add(item.unitPrice.mul(item.quantity)), new client_1.Prisma.Decimal(0));
         const order = await this.prisma.order.create({
             data: {
                 email: dto.email ?? null,
                 phone: dto.phone,
-                shippingAddress: dto.shippingAddress,
-                fullName: dto.fullName ?? null,
+                shippingAddress: dto.fulfillmentMethod === client_1.FulfillmentMethod.PICKUP
+                    ? null
+                    : (dto.shippingAddress ?? null),
+                fullName: dto.fullName,
                 note: dto.note ?? null,
                 paymentMethod: dto.paymentMethod,
                 paymentImageUrl: dto.paymentImageUrl ?? null,
+                fulfillmentMethod: dto.fulfillmentMethod,
                 status: client_1.OrderStatus.PENDING_CONFIRMATION,
                 deliveryDate: this.toDateOnly(dto.deliveryDate),
                 deliveryTime: dto.deliveryTime ?? null,
-                productIds,
                 totalAmount,
+                items: {
+                    create: resolvedItems.map((item) => ({
+                        productId: item.productId,
+                        variantId: item.variantId,
+                        quantity: item.quantity,
+                        unitPrice: item.unitPrice,
+                        productName: item.productName,
+                        productSku: item.productSku,
+                        variantSku: item.variantSku,
+                        size: item.size,
+                        style: item.style,
+                        imageUrl: item.imageUrl,
+                    })),
+                },
             },
+            include: { items: { orderBy: { createdAt: 'asc' } } },
         });
-        const response = this.toResponse(order, priced);
+        const response = this.toResponse(order);
         await Promise.all([
             this.mailService.notifyNewOrder(response),
             this.notificationsService.createOrderCreatedNotifications(response),
@@ -55,9 +73,33 @@ let OrdersService = class OrdersService {
         return response;
     }
     async findAll(query) {
-        const page = query.page ?? 1;
-        const limit = query.limit ?? 10;
-        const where = {};
+        return this.queryOrders(query);
+    }
+    async findHistory(query) {
+        const status = query.status && query.status.length > 0
+            ? query.status
+            : [...query_order_history_dto_1.ORDER_HISTORY_STATUSES];
+        return this.queryOrders({
+            page: query.page,
+            limit: query.limit,
+            createdFrom: query.createdFrom,
+            createdTo: query.createdTo,
+            deliveryDate: query.deliveryDate,
+            deliveryTime: query.deliveryTime,
+            search: query.search,
+            status,
+        });
+    }
+    async queryOrders(query) {
+        this.assertCreatedDateRange(query.createdFrom, query.createdTo);
+        const page = query.page;
+        const limit = query.limit;
+        const where = {
+            createdAt: {
+                gte: this.toDateOnly(query.createdFrom),
+                lt: this.toExclusiveEndDate(query.createdTo),
+            },
+        };
         if (query.deliveryDate) {
             where.deliveryDate = this.toDateOnly(query.deliveryDate);
         }
@@ -73,107 +115,117 @@ let OrdersService = class OrdersService {
                 { email: { contains: query.search, mode: 'insensitive' } },
             ];
         }
-        const sortCreated = query.sortCreated ?? 'desc';
         const [total, rows] = await this.prisma.$transaction([
             this.prisma.order.count({ where }),
             this.prisma.order.findMany({
                 where,
-                orderBy: { createdAt: sortCreated },
+                include: { items: { orderBy: { createdAt: 'asc' } } },
+                orderBy: { createdAt: 'desc' },
                 skip: (page - 1) * limit,
                 take: limit,
             }),
         ]);
-        const productsById = await this.loadProductsMap(rows.flatMap((row) => row.productIds));
         return {
-            items: rows.map((row) => this.toResponse(row, row.productIds
-                .map((id) => productsById.get(id))
-                .filter((item) => Boolean(item)))),
+            items: rows.map((row) => this.toResponse(row)),
             pagination: (0, pagination_util_1.buildPagination)(page, limit, total),
         };
     }
     async findOne(id) {
-        const order = await this.getOrder(id);
-        const productsById = await this.loadProductsMap(order.productIds);
-        const priced = order.productIds
-            .map((productId) => productsById.get(productId))
-            .filter((item) => Boolean(item));
-        return this.toResponse(order, priced);
+        return this.toResponse(await this.getOrder(id));
     }
     async updateStatus(id, dto) {
-        const current = await this.getOrder(id);
+        await this.getOrder(id);
         const order = await this.prisma.order.update({
             where: { id },
             data: { status: dto.status },
+            include: { items: { orderBy: { createdAt: 'asc' } } },
         });
-        const productsById = await this.loadProductsMap(current.productIds);
-        const priced = current.productIds
-            .map((productId) => productsById.get(productId))
-            .filter((item) => Boolean(item));
-        return this.toResponse(order, priced);
+        return this.toResponse(order);
     }
     async getOrder(id) {
-        const order = await this.prisma.order.findUnique({ where: { id } });
+        const order = await this.prisma.order.findUnique({
+            where: { id },
+            include: { items: { orderBy: { createdAt: 'asc' } } },
+        });
         if (!order) {
             throw new common_1.NotFoundException(messages_1.MESSAGES.NOT_FOUND);
         }
         return order;
     }
-    normalizeProductIds(productIds) {
-        const unique = [...new Set(productIds.map((id) => id.trim()))];
-        if (unique.length === 0) {
+    async resolveOrderItems(items) {
+        if (items.length === 0) {
             throw new common_1.BadRequestException(messages_1.MESSAGES.PRODUCTS_REQUIRED);
         }
-        return unique;
-    }
-    async loadPricedProducts(productIds) {
-        const productsById = await this.loadProductsMap(productIds, true);
-        const missing = productIds.filter((id) => !productsById.has(id));
-        if (missing.length > 0) {
-            throw new common_1.BadRequestException(messages_1.MESSAGES.PRODUCT_NOT_FOUND);
-        }
-        return productIds.map((id) => productsById.get(id));
-    }
-    async loadProductsMap(productIds, requirePublished = false) {
-        const uniqueIds = [...new Set(productIds)];
-        if (uniqueIds.length === 0) {
-            return new Map();
-        }
-        const where = {
-            id: { in: uniqueIds },
-            deletedAt: null,
-        };
-        if (requirePublished) {
-            where.status = client_1.ProductStatus.PUBLISHED;
-        }
-        const rows = await this.prisma.product.findMany({
-            where,
+        const variantIds = [...new Set(items.map((item) => item.variantId))];
+        const variants = await this.prisma.productVariant.findMany({
+            where: {
+                id: { in: variantIds },
+                status: client_1.VariantStatus.ACTIVE,
+                product: {
+                    deletedAt: null,
+                    status: client_1.ProductStatus.PUBLISHED,
+                },
+            },
             select: {
                 id: true,
+                productId: true,
                 sku: true,
-                name: true,
+                size: true,
+                style: true,
                 price: true,
                 salePrice: true,
-                images: {
-                    where: { isCover: true },
-                    select: { url: true },
-                    take: 1,
+                product: {
+                    select: {
+                        id: true,
+                        sku: true,
+                        name: true,
+                        images: {
+                            where: { isCover: true },
+                            select: { url: true },
+                            take: 1,
+                        },
+                    },
                 },
             },
         });
-        return new Map(rows.map((row) => [
-            row.id,
-            {
-                id: row.id,
-                sku: row.sku,
-                name: row.name,
-                unitPrice: row.salePrice ?? row.price,
-                imageUrl: row.images[0]?.url ?? null,
-            },
-        ]));
+        const variantById = new Map(variants.map((row) => [row.id, row]));
+        const missing = variantIds.filter((id) => !variantById.has(id));
+        if (missing.length > 0) {
+            throw new common_1.BadRequestException(messages_1.MESSAGES.VARIANT_NOT_FOUND);
+        }
+        return items.map((item) => {
+            const variant = variantById.get(item.variantId);
+            if (variant.productId !== item.productId) {
+                throw new common_1.BadRequestException(messages_1.MESSAGES.VARIANT_PRODUCT_MISMATCH);
+            }
+            return {
+                productId: variant.product.id,
+                variantId: variant.id,
+                quantity: item.quantity,
+                unitPrice: variant.salePrice ?? variant.price,
+                productName: variant.product.name,
+                productSku: variant.product.sku,
+                variantSku: variant.sku,
+                size: variant.size,
+                style: variant.style,
+                imageUrl: variant.product.images[0]?.url ?? null,
+            };
+        });
     }
     assertDeliveryDate(paymentMethod, deliveryDate) {
         if (paymentMethod === client_1.PaymentMethod.BANK_TRANSFER && !deliveryDate) {
             throw new common_1.BadRequestException(messages_1.MESSAGES.DELIVERY_DATE_REQUIRED);
+        }
+    }
+    assertShippingAddress(fulfillmentMethod, shippingAddress) {
+        if (fulfillmentMethod === client_1.FulfillmentMethod.DELIVERY &&
+            (!shippingAddress || shippingAddress.trim().length === 0)) {
+            throw new common_1.BadRequestException(messages_1.MESSAGES.SHIPPING_ADDRESS_REQUIRED);
+        }
+    }
+    assertCreatedDateRange(createdFrom, createdTo) {
+        if (createdFrom.slice(0, 10) > createdTo.slice(0, 10)) {
+            throw new common_1.BadRequestException(messages_1.MESSAGES.INVALID_CREATED_DATE_RANGE);
         }
     }
     toDateOnly(value) {
@@ -182,22 +234,38 @@ let OrdersService = class OrdersService {
         }
         return new Date(`${value.slice(0, 10)}T00:00:00.000Z`);
     }
+    toExclusiveEndDate(value) {
+        const end = this.toDateOnly(value);
+        end.setUTCDate(end.getUTCDate() + 1);
+        return end;
+    }
     formatDateOnly(value) {
         if (!value) {
             return null;
         }
         return value.toISOString().slice(0, 10);
     }
-    toProductItems(products) {
-        return products.map((product) => ({
-            id: product.id,
-            sku: product.sku,
-            name: product.name,
-            unitPrice: product.unitPrice.toFixed(2),
-            imageUrl: product.imageUrl,
-        }));
+    toItemResponses(items) {
+        return items.map((item) => {
+            const unitPrice = item.unitPrice.toFixed(2);
+            const lineTotal = item.unitPrice.mul(item.quantity).toFixed(2);
+            return {
+                id: item.id,
+                productId: item.productId,
+                variantId: item.variantId,
+                quantity: item.quantity,
+                unitPrice,
+                lineTotal,
+                productName: item.productName,
+                productSku: item.productSku,
+                variantSku: item.variantSku,
+                size: item.size,
+                style: item.style,
+                imageUrl: item.imageUrl,
+            };
+        });
     }
-    toResponse(order, products) {
+    toResponse(order) {
         return {
             id: order.id,
             email: order.email,
@@ -207,12 +275,12 @@ let OrdersService = class OrdersService {
             note: order.note,
             paymentMethod: order.paymentMethod,
             paymentImageUrl: order.paymentImageUrl,
+            fulfillmentMethod: order.fulfillmentMethod,
             status: order.status,
             deliveryDate: this.formatDateOnly(order.deliveryDate),
             deliveryTime: order.deliveryTime,
-            productIds: order.productIds,
             totalAmount: order.totalAmount.toFixed(2),
-            products: this.toProductItems(products),
+            items: this.toItemResponses(order.items),
             createdAt: order.createdAt,
             updatedAt: order.updatedAt,
         };

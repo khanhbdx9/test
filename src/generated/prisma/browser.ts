@@ -68,6 +68,11 @@ export type ProductVariant = Prisma.ProductVariantModel
  */
 export type Order = Prisma.OrderModel
 /**
+ * Model OrderItem
+ * 
+ */
+export type OrderItem = Prisma.OrderItemModel
+/**
  * Model SystemConfig
  * 
  */
