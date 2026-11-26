@@ -30,6 +30,7 @@ const permissions_module_1 = require("./modules/permissions/permissions.module")
 const posts_module_1 = require("./modules/posts/posts.module");
 const products_module_1 = require("./modules/products/products.module");
 const public_module_1 = require("./modules/public/public.module");
+const reports_module_1 = require("./modules/reports/reports.module");
 const system_configs_module_1 = require("./modules/system-configs/system-configs.module");
 const themes_module_1 = require("./modules/themes/themes.module");
 const uploads_module_1 = require("./modules/uploads/uploads.module");
@@ -85,6 +86,7 @@ exports.AppModule = AppModule = __decorate([
             themes_module_1.ThemesModule,
             banners_module_1.BannersModule,
             public_module_1.PublicModule,
+            reports_module_1.ReportsModule,
             system_configs_module_1.SystemConfigsModule,
             uploads_module_1.UploadsModule,
             users_module_1.UsersModule,

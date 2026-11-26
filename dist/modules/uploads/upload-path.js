@@ -1,9 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.PAYMENT_QR_UPLOAD_FOLDER = void 0;
 exports.assertSafeSlug = assertSafeSlug;
 exports.normalizeUploadFolder = normalizeUploadFolder;
 exports.resolveUploadFolder = resolveUploadFolder;
 exports.productUploadFolder = productUploadFolder;
+exports.paymentQrUploadFolder = paymentQrUploadFolder;
 exports.relativePathFromUploadUrl = relativePathFromUploadUrl;
 exports.folderFromUploadUrl = folderFromUploadUrl;
 const common_1 = require("@nestjs/common");
@@ -44,6 +46,10 @@ function resolveUploadFolder(folder) {
 }
 function productUploadFolder(categorySlug, productSlug) {
     return normalizeUploadFolder(`products/${assertSafeSlug(categorySlug, 'Slug danh mục')}/${assertSafeSlug(productSlug, 'Slug sản phẩm')}`);
+}
+exports.PAYMENT_QR_UPLOAD_FOLDER = 'payments/qr';
+function paymentQrUploadFolder() {
+    return normalizeUploadFolder(exports.PAYMENT_QR_UPLOAD_FOLDER);
 }
 function relativePathFromUploadUrl(url) {
     try {

@@ -69,6 +69,17 @@ export class SystemConfigsService {
     return value ? value : null;
   }
 
+  async findByKey(key: string): Promise<SystemConfigResponseDto> {
+    const row = await this.prisma.systemConfig.findUnique({
+      where: { key },
+      select: configSelect,
+    });
+    if (!row) {
+      throw new NotFoundException(MESSAGES.NOT_FOUND);
+    }
+    return row;
+  }
+
   async create(dto: CreateSystemConfigDto): Promise<SystemConfigResponseDto> {
     try {
       return await this.prisma.systemConfig.create({

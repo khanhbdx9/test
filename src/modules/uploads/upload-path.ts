@@ -48,6 +48,13 @@ export function productUploadFolder(
   );
 }
 
+/** Folder cố định cho ảnh chứng từ thanh toán (QR pay). */
+export const PAYMENT_QR_UPLOAD_FOLDER = 'payments/qr';
+
+export function paymentQrUploadFolder(): string {
+  return normalizeUploadFolder(PAYMENT_QR_UPLOAD_FOLDER);
+}
+
 export function relativePathFromUploadUrl(url: string): string | null {
   try {
     const pathname = url.startsWith('http') ? new URL(url).pathname : url;

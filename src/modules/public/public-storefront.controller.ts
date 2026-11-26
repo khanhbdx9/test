@@ -8,8 +8,18 @@ import {
   ParseUUIDPipe,
   Post,
   Query,
+  Req,
+  UploadedFiles,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
+import { Request } from 'express';
 import { MESSAGES } from '../../common/constants/messages';
 import {
   ApiStandardArrayResponse,
@@ -41,8 +51,18 @@ import {
   QueryRelatedProductDto,
 } from '../products/dto/query-public-product.dto';
 import { ProductsService } from '../products/products.service';
+import { SYSTEM_CONFIG_KEYS } from '../system-configs/system-config.keys';
+import { SystemConfigResponseDto } from '../system-configs/dto/system-config-response.dto';
+import { SystemConfigsService } from '../system-configs/system-configs.service';
 import { ThemeResponseDto } from '../themes/dto/theme-response.dto';
 import { ThemesService } from '../themes/themes.service';
+import {
+  MAX_TOTAL_UPLOAD_BYTES,
+  MAX_UPLOAD_FILES,
+} from '../uploads/image-file';
+import { UploadImageResponseDto } from '../uploads/dto/upload-image-response.dto';
+import { paymentQrUploadFolder } from '../uploads/upload-path';
+import { IncomingImage, UploadsService } from '../uploads/uploads.service';
 import { PublicFilterResponseDto } from './dto/public-filter-response.dto';
 import { PublicFilterDto } from './dto/public-filter.dto';
 import { PublicFilterService } from './public-filter.service';
@@ -59,6 +79,8 @@ export class PublicStorefrontController {
     private readonly bannersService: BannersService,
     private readonly postsService: PostsService,
     private readonly publicFilterService: PublicFilterService,
+    private readonly systemConfigsService: SystemConfigsService,
+    private readonly uploadsService: UploadsService,
   ) {}
 
   @Get('categories')
@@ -192,6 +214,62 @@ export class PublicStorefrontController {
   @ApiStandardErrorResponse()
   createOrder(@Body() dto: CreateOrderDto) {
     return this.ordersService.createPublic(dto);
+  }
+
+  @Get('p-con/qr')
+  @ResponseMessage(MESSAGES.FETCH_SUCCESS)
+  @ApiOperation({
+    summary: 'Lấy cấu hình QR thanh toán (system_configs.QR_PAYMENT)',
+  })
+  @ApiStandardResponse({
+    type: SystemConfigResponseDto,
+    description: MESSAGES.FETCH_SUCCESS,
+  })
+  @ApiStandardErrorResponse()
+  findPaymentQrConfig() {
+    return this.systemConfigsService.findByKey(SYSTEM_CONFIG_KEYS.QR_PAYMENT);
+  }
+
+  @Post('upload/qr/pay')
+  @ResponseMessage(MESSAGES.CREATED)
+  @ApiOperation({
+    summary:
+      'Upload ảnh chứng từ thanh toán vào folder payments/qr (chỉ ảnh)',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['files'],
+      properties: {
+        files: {
+          type: 'array',
+          items: { type: 'string', format: 'binary' },
+        },
+      },
+    },
+  })
+  @ApiStandardArrayResponse({
+    type: UploadImageResponseDto,
+    status: 201,
+    description: MESSAGES.CREATED,
+  })
+  @ApiStandardErrorResponse()
+  @UseInterceptors(
+    FilesInterceptor('files', MAX_UPLOAD_FILES, {
+      limits: { fileSize: MAX_TOTAL_UPLOAD_BYTES },
+    }),
+  )
+  uploadPaymentQrImages(
+    @UploadedFiles() files: IncomingImage[] | undefined,
+    @Req() request: Request,
+  ) {
+    const protocol = request.get('x-forwarded-proto') ?? request.protocol;
+    return this.uploadsService.saveImages(
+      files,
+      `${protocol}://${request.get('host')}`,
+      paymentQrUploadFolder(),
+    );
   }
 
   @Get('theme')

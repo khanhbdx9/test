@@ -23,11 +23,13 @@ Chỉ dùng **một** file `.env` (git ignore). Production không đọc file �
 | `SEED_SUPER_ADMIN_NAME` | Tên tài khoản SUPER_ADMIN |
 | `PORT` | Cổng HTTP, mặc định `3000` |
 | `NODE_ENV` | `development`, `test` hoặc `production` |
-| `SMTP_HOST` | SMTP host (optional — thiếu thì bỏ qua gửi mail) |
+| `SMTP_HOST` | SMTP host (**bắt buộc nếu muốn gửi mail** — thiếu thì bỏ qua gửi) |
 | `SMTP_PORT` | SMTP port, ví dụ `587` |
 | `SMTP_USER` | SMTP user |
 | `SMTP_PASS` | SMTP password |
 | `SMTP_FROM` | Địa chỉ From (mặc định dùng `SMTP_USER`) |
+
+Địa chỉ **nhận** thông báo đơn mới lấy từ `system_configs.EMAIL_NOTIFICATION` (CMS), không lấy từ env.
 
 ## Chạy local
 

@@ -14,6 +14,8 @@ Gom toàn bộ API public vào một controller (`PublicStorefrontController`), 
 - `GET /api/v1/public/products/:categorySlug/related-other` — tối đa 10 SP category khác, mỗi category ≥1 nếu có
 - `POST /api/v1/public/filter` — xem `feature/tim-kiem.md`
 - `POST /api/v1/public/orders/create`
+- `GET /api/v1/public/p-con/qr` — config `QR_PAYMENT`
+- `POST /api/v1/public/upload/qr/pay` — upload ảnh chứng từ thanh toán vào `payments/qr`
 - `GET /api/v1/public/theme`
 - `GET /api/v1/public/banners`
 - `GET /api/v1/public/posts`

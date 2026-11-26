@@ -13,7 +13,9 @@ const categories_module_1 = require("../categories/categories.module");
 const orders_module_1 = require("../orders/orders.module");
 const posts_module_1 = require("../posts/posts.module");
 const products_module_1 = require("../products/products.module");
+const system_configs_module_1 = require("../system-configs/system-configs.module");
 const themes_module_1 = require("../themes/themes.module");
+const uploads_module_1 = require("../uploads/uploads.module");
 const public_filter_service_1 = require("./public-filter.service");
 const public_storefront_controller_1 = require("./public-storefront.controller");
 let PublicModule = class PublicModule {
@@ -28,6 +30,8 @@ exports.PublicModule = PublicModule = __decorate([
             themes_module_1.ThemesModule,
             banners_module_1.BannersModule,
             posts_module_1.PostsModule,
+            system_configs_module_1.SystemConfigsModule,
+            uploads_module_1.UploadsModule,
         ],
         controllers: [public_storefront_controller_1.PublicStorefrontController],
         providers: [public_filter_service_1.PublicFilterService],

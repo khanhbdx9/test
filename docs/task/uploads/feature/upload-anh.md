@@ -20,6 +20,10 @@ Khi sản phẩm đổi ảnh hoặc xóa, module products xóa file/folder `pro
 
 User đã đăng nhập và có một trong các quyền `products.create`, `posts.create`, `banners.manage`, `themes.manage`.
 
+Public (không token), folder cố định `payments/qr`:
+
+`POST /api/v1/public/upload/qr/pay` — field `files`, chỉ ảnh JPEG/PNG/WEBP.
+
 ## Ngoài phạm vi
 
 S3, Cloudinary.

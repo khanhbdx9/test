@@ -13,6 +13,7 @@ export declare class SystemConfigsService {
     }>;
     findOne(id: string): Promise<SystemConfigResponseDto>;
     findValueByKey(key: string): Promise<string | null>;
+    findByKey(key: string): Promise<SystemConfigResponseDto>;
     create(dto: CreateSystemConfigDto): Promise<SystemConfigResponseDto>;
     update(id: string, dto: UpdateSystemConfigDto): Promise<SystemConfigResponseDto>;
     remove(id: string): Promise<DeletedSystemConfigResponseDto>;

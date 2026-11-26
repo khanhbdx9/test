@@ -1,20 +1,28 @@
-# Doanh thu
+# Doanh thu / dashboard biểu đồ
 
 - Thứ tự: 26
-- Trạng thái: Chưa làm
+- Trạng thái: Xong
 - Module: reports
-- Phụ thuộc: orders trạng thái
+- Phụ thuộc: orders, order_items
 
 ## Phạm vi
 
-Doanh thu chỉ tính đơn `COMPLETED` và `PAID`. Không tính đơn hủy.
+Tổng hợp dữ liệu cho biểu đồ vận hành cửa hàng. Doanh thu chỉ tính đơn `COMPLETED`.
 
-Tổng doanh thu, tổng số đơn, số đơn theo trạng thái, sản phẩm bán chạy, doanh thu theo ngày và theo tháng. Lọc `from` và `to`.
+Query **bắt buộc**: `from`, `to` (lọc `createdAt`). Tùy chọn `topLimit` (mặc định 10).
+
+Trả về:
+
+- `summary`: tổng doanh thu COMPLETED, tổng đơn (mọi status), số đơn COMPLETED, AOV
+- `ordersByStatus`: số đơn theo từng trạng thái
+- `revenueByDay` / `revenueByMonth`: chuỗi thời gian doanh thu COMPLETED
+- `topProducts`: sản phẩm bán chạy theo số lượng (kèm doanh thu dòng)
 
 ## API
 
-`GET /api/v1/reports/revenue` quyền `reports.view`
+- `GET /api/v1/reports/dashboard` quyền `reports.view`
+- `GET /api/v1/reports/revenue` quyền `reports.view` (alias cùng payload)
 
 ## Ngoài phạm vi
 
-Export Excel.
+Export Excel, PAID (không có status này).

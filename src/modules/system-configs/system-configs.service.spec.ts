@@ -29,6 +29,13 @@ describe('SystemConfigsService', () => {
     );
   });
 
+  it('findByKey 404 khi thiếu key', async () => {
+    prisma.systemConfig.findUnique.mockResolvedValue(null);
+    await expect(service.findByKey('QR_PAYMENT')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+  });
+
   it('conflict khi key trùng', async () => {
     prisma.systemConfig.create.mockRejectedValue(
       new Prisma.PrismaClientKnownRequestError('dup', {

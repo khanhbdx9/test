@@ -9,7 +9,10 @@
 
 Quản trị key/value cấu hình hệ thống. `key` unique.
 
-Seed mặc định: `EMAIL_NOTIFICATION` — một hoặc nhiều email nhận thông báo đơn mới, phân tách bằng `;`. Dùng bởi `MailService` khi tạo đơn public.
+Seed mặc định:
+
+- `EMAIL_NOTIFICATION` — email nhận thông báo đơn mới (`;` hoặc `,`). Dùng bởi `MailService` khi tạo đơn public.
+- `QR_PAYMENT` — nội dung/URL QR thanh toán; public đọc qua `GET /public/p-con/qr`.
 
 ## API
 

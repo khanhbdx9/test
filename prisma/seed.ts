@@ -223,13 +223,27 @@ async function main(): Promise<void> {
     where: { key: 'EMAIL_NOTIFICATION' },
     update: {
       description:
-        'Email nhận thông báo đơn hàng mới; nhiều địa chỉ phân tách bằng ;',
+        'Email nhận thông báo đơn hàng mới; nhiều địa chỉ phân tách bằng ; hoặc ,',
     },
     create: {
       key: 'EMAIL_NOTIFICATION',
       value: email,
       description:
-        'Email nhận thông báo đơn hàng mới; nhiều địa chỉ phân tách bằng ;',
+        'Email nhận thông báo đơn hàng mới; nhiều địa chỉ phân tách bằng ; hoặc ,',
+    },
+  });
+
+  await prisma.systemConfig.upsert({
+    where: { key: 'QR_PAYMENT' },
+    update: {
+      description:
+        'Nội dung/URL QR thanh toán chuyển khoản hiển thị trên storefront',
+    },
+    create: {
+      key: 'QR_PAYMENT',
+      value: '',
+      description:
+        'Nội dung/URL QR thanh toán chuyển khoản hiển thị trên storefront',
     },
   });
 }

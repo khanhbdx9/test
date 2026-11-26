@@ -21,6 +21,7 @@ import { PermissionsModule } from './modules/permissions/permissions.module';
 import { PostsModule } from './modules/posts/posts.module';
 import { ProductsModule } from './modules/products/products.module';
 import { PublicModule } from './modules/public/public.module';
+import { ReportsModule } from './modules/reports/reports.module';
 import { SystemConfigsModule } from './modules/system-configs/system-configs.module';
 import { ThemesModule } from './modules/themes/themes.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
@@ -75,6 +76,7 @@ import { UsersModule } from './modules/users/users.module';
     ThemesModule,
     BannersModule,
     PublicModule,
+    ReportsModule,
     SystemConfigsModule,
     UploadsModule,
     UsersModule,

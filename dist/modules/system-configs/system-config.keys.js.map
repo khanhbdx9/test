@@ -1,1 +1,1 @@
-{"version":3,"file":"system-config.keys.js","sourceRoot":"","sources":["../../../src/modules/system-configs/system-config.keys.ts"],"names":[],"mappings":";;;AAAa,QAAA,kBAAkB,GAAG;IAChC,kBAAkB,EAAE,oBAAoB;CAChC,CAAC"}
+{"version":3,"file":"system-config.keys.js","sourceRoot":"","sources":["../../../src/modules/system-configs/system-config.keys.ts"],"names":[],"mappings":";;;AAAa,QAAA,kBAAkB,GAAG;IAChC,kBAAkB,EAAE,oBAAoB;IACxC,UAAU,EAAE,YAAY;CAChB,CAAC"}

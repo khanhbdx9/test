@@ -65,7 +65,7 @@ describe('MailService', () => {
     expect(configService.get).not.toHaveBeenCalled();
   });
 
-  it('parse nhiều email phân tách bằng ;', () => {
+  it('parse nhiều email phân tách bằng ; hoặc ,', () => {
     const service = new MailService(
       configService as never,
       systemConfigsService as never,
@@ -75,7 +75,28 @@ describe('MailService', () => {
         ' a@shop.local ; b@shop.local; ;c@shop.local ',
       ),
     ).toEqual(['a@shop.local', 'b@shop.local', 'c@shop.local']);
+    expect(
+      service.parseNotificationEmails('a@shop.local, B@shop.local; c@shop.local'),
+    ).toEqual(['a@shop.local', 'b@shop.local', 'c@shop.local']);
     expect(service.parseNotificationEmails(null)).toEqual([]);
     expect(service.parseNotificationEmails('  ;  ')).toEqual([]);
+  });
+
+  it('bỏ qua khi thiếu SMTP', async () => {
+    systemConfigsService.findValueByKey.mockResolvedValue('owner@shop.local');
+    configService.get.mockReturnValue({
+      host: undefined,
+      port: undefined,
+      user: undefined,
+      pass: undefined,
+    });
+    const service = new MailService(
+      configService as never,
+      systemConfigsService as never,
+    );
+    await service.notifyNewOrder(order);
+    expect(systemConfigsService.findValueByKey).toHaveBeenCalledWith(
+      SYSTEM_CONFIG_KEYS.EMAIL_NOTIFICATION,
+    );
   });
 });
