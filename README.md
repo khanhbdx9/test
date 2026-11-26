@@ -23,6 +23,7 @@ Chỉ dùng **một** file `.env` (git ignore). Production không đọc file �
 | `SEED_SUPER_ADMIN_NAME` | Tên tài khoản SUPER_ADMIN |
 | `PORT` | Cổng HTTP, mặc định `3000` |
 | `NODE_ENV` | `development`, `test` hoặc `production` |
+| `MAIL_ENABLED` | `true`/`false` — tắt gửi mail trên server nếu SMTP bị block (tránh treo) |
 | `SMTP_HOST` | SMTP host (**bắt buộc nếu muốn gửi mail** — thiếu thì bỏ qua gửi) |
 | `SMTP_PORT` | SMTP port, ví dụ `587` |
 | `SMTP_USER` | SMTP user |
@@ -30,6 +31,8 @@ Chỉ dùng **một** file `.env` (git ignore). Production không đọc file �
 | `SMTP_FROM` | Địa chỉ From (mặc định dùng `SMTP_USER`) |
 
 Địa chỉ **nhận** thông báo đơn mới lấy từ `system_configs.EMAIL_NOTIFICATION` (CMS), không lấy từ env.
+
+Nếu tạo đơn trên server bị **502**: thường do bản deploy cũ còn `await` SMTP. Cần rebuild/deploy bản mới (mail chạy nền). Tạm thời có thể set `MAIL_ENABLED=false` để xác nhận đơn đặt được.
 
 ## Chạy local
 

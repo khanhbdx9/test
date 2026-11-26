@@ -11,8 +11,11 @@ export declare class OrdersService {
     private readonly prisma;
     private readonly mailService;
     private readonly notificationsService;
+    private readonly logger;
     constructor(prisma: PrismaService, mailService: MailService, notificationsService: NotificationsService);
     createPublic(dto: CreateOrderDto): Promise<OrderResponseDto>;
+    private enqueueOrderSideEffects;
+    private runOrderSideEffects;
     findAll(query: QueryOrderDto): Promise<{
         items: OrderResponseDto[];
         pagination: ReturnType<typeof buildPagination>;

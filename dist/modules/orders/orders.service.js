@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var OrdersService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrdersService = void 0;
 const common_1 = require("@nestjs/common");
@@ -18,10 +19,11 @@ const client_1 = require("../../generated/prisma/client");
 const mail_service_1 = require("../mail/mail.service");
 const notifications_service_1 = require("../notifications/notifications.service");
 const query_order_history_dto_1 = require("./dto/query-order-history.dto");
-let OrdersService = class OrdersService {
+let OrdersService = OrdersService_1 = class OrdersService {
     prisma;
     mailService;
     notificationsService;
+    logger = new common_1.Logger(OrdersService_1.name);
     constructor(prisma, mailService, notificationsService) {
         this.prisma = prisma;
         this.mailService = mailService;
@@ -66,11 +68,29 @@ let OrdersService = class OrdersService {
             include: { items: { orderBy: { createdAt: 'asc' } } },
         });
         const response = this.toResponse(order);
-        await Promise.all([
-            this.mailService.notifyNewOrder(response),
-            this.notificationsService.createOrderCreatedNotifications(response),
-        ]);
+        this.enqueueOrderSideEffects(response);
         return response;
+    }
+    enqueueOrderSideEffects(order) {
+        setImmediate(() => {
+            void this.runOrderSideEffects(order);
+        });
+    }
+    async runOrderSideEffects(order) {
+        try {
+            await this.mailService.notifyNewOrder(order);
+        }
+        catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            this.logger.error(`Side-effect mail đơn ${order.id} lỗi: ${message}`);
+        }
+        try {
+            await this.notificationsService.createOrderCreatedNotifications(order);
+        }
+        catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            this.logger.error(`Side-effect notification đơn ${order.id} lỗi: ${message}`);
+        }
     }
     async findAll(query) {
         return this.queryOrders(query);
@@ -287,7 +307,7 @@ let OrdersService = class OrdersService {
     }
 };
 exports.OrdersService = OrdersService;
-exports.OrdersService = OrdersService = __decorate([
+exports.OrdersService = OrdersService = OrdersService_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         mail_service_1.MailService,

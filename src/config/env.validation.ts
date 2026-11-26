@@ -16,6 +16,7 @@ export const envValidationSchema = Joi.object({
   JWT_REFRESH_EXPIRES_IN: Joi.string()
     .pattern(/^\d+(s|m|h|d)$/)
     .required(),
+  MAIL_ENABLED: Joi.string().valid('true', 'false').optional(),
   SMTP_HOST: Joi.string().optional(),
   SMTP_PORT: Joi.number().port().optional(),
   SMTP_USER: Joi.string().optional(),

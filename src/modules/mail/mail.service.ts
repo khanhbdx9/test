@@ -22,6 +22,10 @@ export class MailService implements OnModuleInit {
 
   onModuleInit(): void {
     const mail = this.configService.get('mail', { infer: true });
+    if (!mail.enabled) {
+      this.logger.warn('MAIL_ENABLED=false — bỏ qua gửi mail thông báo đơn');
+      return;
+    }
     if (!mail.host || !mail.port || !mail.user || !mail.pass) {
       this.logger.warn(
         'SMTP chưa đủ (SMTP_HOST/PORT/USER/PASS) — thông báo đơn hàng sẽ bị bỏ qua cho đến khi cấu hình',
@@ -31,6 +35,14 @@ export class MailService implements OnModuleInit {
 
   async notifyNewOrder(order: OrderResponseDto): Promise<void> {
     try {
+      const mail = this.configService.get('mail', { infer: true });
+      if (!mail.enabled) {
+        this.logger.warn(
+          `Bỏ qua gửi mail đơn ${order.id}: MAIL_ENABLED=false`,
+        );
+        return;
+      }
+
       const recipients = await this.getNotificationRecipients();
       if (recipients.length === 0) {
         this.logger.warn(
@@ -39,7 +51,6 @@ export class MailService implements OnModuleInit {
         return;
       }
 
-      const mail = this.configService.get('mail', { infer: true });
       const transporter = this.getTransporter(mail);
       if (!transporter) {
         this.logger.warn(
@@ -68,7 +79,7 @@ export class MailService implements OnModuleInit {
       );
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Gửi mail đơn hàng thất bại: ${message}`, error);
+      this.logger.error(`Gửi mail đơn hàng thất bại: ${message}`);
     }
   }
 
@@ -111,7 +122,17 @@ export class MailService implements OnModuleInit {
       host,
       port,
       secure: port === 465,
-      auth: { user, pass },
+      auth: {
+        user,
+        pass: pass.replace(/\s+/g, ''),
+      },
+      // Timeout ngắn để không làm chậm event loop / treo worker trên server.
+      connectionTimeout: 5_000,
+      greetingTimeout: 5_000,
+      socketTimeout: 10_000,
+      tls: {
+        servername: host,
+      },
     });
     return this.transporter;
   }

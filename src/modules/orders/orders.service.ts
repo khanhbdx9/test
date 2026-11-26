@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { MESSAGES } from '../../common/constants/messages';
@@ -47,6 +48,8 @@ type ResolvedOrderItem = {
 
 @Injectable()
 export class OrdersService {
+  private readonly logger = new Logger(OrdersService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly mailService: MailService,
@@ -98,11 +101,32 @@ export class OrdersService {
     });
 
     const response = this.toResponse(order);
-    await Promise.all([
-      this.mailService.notifyNewOrder(response),
-      this.notificationsService.createOrderCreatedNotifications(response),
-    ]);
+    // Tách hẳn khỏi request lifecycle — tránh proxy/serverless chờ SMTP → 502.
+    this.enqueueOrderSideEffects(response);
     return response;
+  }
+
+  private enqueueOrderSideEffects(order: OrderResponseDto): void {
+    setImmediate(() => {
+      void this.runOrderSideEffects(order);
+    });
+  }
+
+  private async runOrderSideEffects(order: OrderResponseDto): Promise<void> {
+    try {
+      await this.mailService.notifyNewOrder(order);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Side-effect mail đơn ${order.id} lỗi: ${message}`);
+    }
+    try {
+      await this.notificationsService.createOrderCreatedNotifications(order);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(
+        `Side-effect notification đơn ${order.id} lỗi: ${message}`,
+      );
+    }
   }
 
   async findAll(query: QueryOrderDto): Promise<{

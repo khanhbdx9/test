@@ -31,18 +31,26 @@ let MailService = MailService_1 = class MailService {
     }
     onModuleInit() {
         const mail = this.configService.get('mail', { infer: true });
+        if (!mail.enabled) {
+            this.logger.warn('MAIL_ENABLED=false — bỏ qua gửi mail thông báo đơn');
+            return;
+        }
         if (!mail.host || !mail.port || !mail.user || !mail.pass) {
             this.logger.warn('SMTP chưa đủ (SMTP_HOST/PORT/USER/PASS) — thông báo đơn hàng sẽ bị bỏ qua cho đến khi cấu hình');
         }
     }
     async notifyNewOrder(order) {
         try {
+            const mail = this.configService.get('mail', { infer: true });
+            if (!mail.enabled) {
+                this.logger.warn(`Bỏ qua gửi mail đơn ${order.id}: MAIL_ENABLED=false`);
+                return;
+            }
             const recipients = await this.getNotificationRecipients();
             if (recipients.length === 0) {
                 this.logger.warn(`Bỏ qua gửi mail đơn ${order.id}: thiếu hoặc rỗng config ${system_config_keys_1.SYSTEM_CONFIG_KEYS.EMAIL_NOTIFICATION}`);
                 return;
             }
-            const mail = this.configService.get('mail', { infer: true });
             const transporter = this.getTransporter(mail);
             if (!transporter) {
                 this.logger.warn(`Bỏ qua gửi mail đơn ${order.id}: chưa cấu hình SMTP (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS)`);
@@ -64,7 +72,7 @@ let MailService = MailService_1 = class MailService {
         }
         catch (error) {
             const message = error instanceof Error ? error.message : String(error);
-            this.logger.error(`Gửi mail đơn hàng thất bại: ${message}`, error);
+            this.logger.error(`Gửi mail đơn hàng thất bại: ${message}`);
         }
     }
     async getNotificationRecipients() {
@@ -96,7 +104,16 @@ let MailService = MailService_1 = class MailService {
             host,
             port,
             secure: port === 465,
-            auth: { user, pass },
+            auth: {
+                user,
+                pass: pass.replace(/\s+/g, ''),
+            },
+            connectionTimeout: 5_000,
+            greetingTimeout: 5_000,
+            socketTimeout: 10_000,
+            tls: {
+                servername: host,
+            },
         });
         return this.transporter;
     }

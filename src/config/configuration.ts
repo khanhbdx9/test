@@ -9,6 +9,7 @@ export interface AppConfiguration {
     refreshExpiresIn: string;
   };
   mail: {
+    enabled: boolean;
     host?: string;
     port?: number;
     user?: string;
@@ -48,6 +49,8 @@ export const configuration = (): AppConfiguration => {
       refreshExpiresIn,
     },
     mail: {
+      // MAIL_ENABLED=false để tắt gửi mail trên server khi SMTP bị block/treo.
+      enabled: process.env.MAIL_ENABLED?.trim().toLowerCase() !== 'false',
       host: process.env.SMTP_HOST?.trim() || undefined,
       port:
         smtpPort !== undefined && !Number.isNaN(smtpPort) ? smtpPort : undefined,

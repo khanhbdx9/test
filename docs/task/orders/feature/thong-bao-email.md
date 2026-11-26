@@ -14,7 +14,9 @@ Sau khi `POST /public/orders/create` thành công, gửi email HTML (table + inl
 - Nhiều email: phân tách bằng `;` hoặc `,`, trim, bỏ rỗng, lowercase, unique
 - Nội dung: khách, thanh toán, giao hàng / nhận hàng, dòng hàng, tổng tiền
 - **SMTP gửi** từ biến môi trường `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` (thiếu → log warn, không gửi, không fail đơn)
+- Gửi mail + in-app notification chạy nền sau khi tạo đơn (`Promise.allSettled`) — không làm chậm/502 response
 - Lỗi gửi mail không làm fail tạo đơn
+- SMTP có `connectionTimeout`/`socketTimeout` để tránh treo khi Gmail/proxy chậm
 
 ## Lưu ý vận hành
 

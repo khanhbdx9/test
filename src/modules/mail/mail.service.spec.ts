@@ -54,6 +54,7 @@ describe('MailService', () => {
 
   it('bỏ qua khi thiếu EMAIL_NOTIFICATION', async () => {
     systemConfigsService.findValueByKey.mockResolvedValue(null);
+    configService.get.mockReturnValue({ enabled: true });
     const service = new MailService(
       configService as never,
       systemConfigsService as never,
@@ -62,7 +63,6 @@ describe('MailService', () => {
     expect(systemConfigsService.findValueByKey).toHaveBeenCalledWith(
       SYSTEM_CONFIG_KEYS.EMAIL_NOTIFICATION,
     );
-    expect(configService.get).not.toHaveBeenCalled();
   });
 
   it('parse nhiều email phân tách bằng ; hoặc ,', () => {
@@ -85,6 +85,7 @@ describe('MailService', () => {
   it('bỏ qua khi thiếu SMTP', async () => {
     systemConfigsService.findValueByKey.mockResolvedValue('owner@shop.local');
     configService.get.mockReturnValue({
+      enabled: true,
       host: undefined,
       port: undefined,
       user: undefined,
@@ -98,5 +99,21 @@ describe('MailService', () => {
     expect(systemConfigsService.findValueByKey).toHaveBeenCalledWith(
       SYSTEM_CONFIG_KEYS.EMAIL_NOTIFICATION,
     );
+  });
+
+  it('bỏ qua khi MAIL_ENABLED=false', async () => {
+    configService.get.mockReturnValue({
+      enabled: false,
+      host: 'smtp.gmail.com',
+      port: 587,
+      user: 'a@b.com',
+      pass: 'x',
+    });
+    const service = new MailService(
+      configService as never,
+      systemConfigsService as never,
+    );
+    await service.notifyNewOrder(order);
+    expect(systemConfigsService.findValueByKey).not.toHaveBeenCalled();
   });
 });

@@ -181,6 +181,7 @@ describe('OrdersService', () => {
         }),
       }),
     );
+    await new Promise<void>((resolve) => setImmediate(resolve));
     expect(mailService.notifyNewOrder).toHaveBeenCalled();
   });
 

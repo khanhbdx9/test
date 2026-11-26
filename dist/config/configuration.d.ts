@@ -9,6 +9,7 @@ export interface AppConfiguration {
         refreshExpiresIn: string;
     };
     mail: {
+        enabled: boolean;
         host?: string;
         port?: number;
         user?: string;

@@ -28,6 +28,7 @@ const configuration = () => {
             refreshExpiresIn,
         },
         mail: {
+            enabled: process.env.MAIL_ENABLED?.trim().toLowerCase() !== 'false',
             host: process.env.SMTP_HOST?.trim() || undefined,
             port: smtpPort !== undefined && !Number.isNaN(smtpPort) ? smtpPort : undefined,
             user: process.env.SMTP_USER?.trim() || undefined,
