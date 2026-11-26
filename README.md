@@ -23,16 +23,20 @@ Chỉ dùng **một** file `.env` (git ignore). Production không đọc file �
 | `SEED_SUPER_ADMIN_NAME` | Tên tài khoản SUPER_ADMIN |
 | `PORT` | Cổng HTTP, mặc định `3000` |
 | `NODE_ENV` | `development`, `test` hoặc `production` |
-| `MAIL_ENABLED` | `true`/`false` — tắt gửi mail trên server nếu SMTP bị block (tránh treo) |
-| `SMTP_HOST` | SMTP host (**bắt buộc nếu muốn gửi mail** — thiếu thì bỏ qua gửi) |
+| `MAIL_ENABLED` | `true`/`false` — tắt gửi mail |
+| `MAIL_TRANSPORT` | `smtp` (local) hoặc `gmail-api` (**khuyến nghị trên server**) |
+| `SMTP_HOST` | SMTP host (khi `smtp`) |
 | `SMTP_PORT` | SMTP port, ví dụ `587` |
-| `SMTP_USER` | SMTP user |
-| `SMTP_PASS` | SMTP password |
-| `SMTP_FROM` | Địa chỉ From (mặc định dùng `SMTP_USER`) |
+| `SMTP_USER` | Gmail gửi (cả smtp và gmail-api) |
+| `SMTP_PASS` | App Password (chỉ khi `smtp`) |
+| `SMTP_FROM` | From (mặc định `SMTP_USER`) |
+| `GMAIL_CLIENT_ID` | OAuth client id (khi `gmail-api`) |
+| `GMAIL_CLIENT_SECRET` | OAuth client secret |
+| `GMAIL_REFRESH_TOKEN` | OAuth refresh token — lấy bằng `scripts/gmail-oauth-setup.ts` |
 
-Địa chỉ **nhận** thông báo đơn mới lấy từ `system_configs.EMAIL_NOTIFICATION` (CMS), không lấy từ env.
+Địa chỉ **nhận** lấy từ `system_configs.EMAIL_NOTIFICATION` (CMS).
 
-Nếu tạo đơn trên server bị **502**: thường do bản deploy cũ còn `await` SMTP. Cần rebuild/deploy bản mới (mail chạy nền). Tạm thời có thể set `MAIL_ENABLED=false` để xác nhận đơn đặt được.
+**Server + Gmail thật:** dùng `MAIL_TRANSPORT=gmail-api` (HTTPS). Gmail SMTP trên cloud thường `Connection timeout`.
 
 ## Chạy local
 

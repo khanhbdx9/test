@@ -1,3 +1,14 @@
+jest.mock('googleapis', () => ({
+  google: {
+    auth: { OAuth2: jest.fn() },
+    gmail: jest.fn(),
+  },
+}));
+jest.mock('nodemailer', () => ({
+  __esModule: true,
+  default: { createTransport: jest.fn() },
+}));
+
 import { MailService } from './mail.service';
 import {
   FulfillmentMethod,
@@ -54,7 +65,11 @@ describe('MailService', () => {
 
   it('bỏ qua khi thiếu EMAIL_NOTIFICATION', async () => {
     systemConfigsService.findValueByKey.mockResolvedValue(null);
-    configService.get.mockReturnValue({ enabled: true });
+    configService.get.mockReturnValue({
+      enabled: true,
+      transport: 'smtp',
+      gmail: {},
+    });
     const service = new MailService(
       configService as never,
       systemConfigsService as never,
@@ -86,6 +101,8 @@ describe('MailService', () => {
     systemConfigsService.findValueByKey.mockResolvedValue('owner@shop.local');
     configService.get.mockReturnValue({
       enabled: true,
+      transport: 'smtp',
+      gmail: {},
       host: undefined,
       port: undefined,
       user: undefined,
@@ -104,6 +121,8 @@ describe('MailService', () => {
   it('bỏ qua khi MAIL_ENABLED=false', async () => {
     configService.get.mockReturnValue({
       enabled: false,
+      transport: 'smtp',
+      gmail: {},
       host: 'smtp.gmail.com',
       port: 587,
       user: 'a@b.com',

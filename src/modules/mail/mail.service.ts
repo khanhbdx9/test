@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { google } from 'googleapis';
 import nodemailer, { Transporter } from 'nodemailer';
 import { AppConfiguration } from '../../config/configuration';
 import { OrderResponseDto } from '../orders/dto/order-response.dto';
@@ -9,6 +10,14 @@ import {
   buildOrderNotificationHtml,
   buildOrderNotificationText,
 } from './order-notification.template';
+
+type OutgoingMail = {
+  from: string;
+  to: string[];
+  subject: string;
+  text: string;
+  html: string;
+};
 
 @Injectable()
 export class MailService implements OnModuleInit {
@@ -26,10 +35,27 @@ export class MailService implements OnModuleInit {
       this.logger.warn('MAIL_ENABLED=false — bỏ qua gửi mail thông báo đơn');
       return;
     }
+    if (mail.transport === 'gmail-api') {
+      if (
+        !mail.user ||
+        !mail.gmail.clientId ||
+        !mail.gmail.clientSecret ||
+        !mail.gmail.refreshToken
+      ) {
+        this.logger.warn(
+          'Gmail API chưa đủ (SMTP_USER + GMAIL_CLIENT_ID/SECRET/REFRESH_TOKEN)',
+        );
+      } else {
+        this.logger.log('Mail transport: gmail-api (HTTPS — phù hợp server)');
+      }
+      return;
+    }
     if (!mail.host || !mail.port || !mail.user || !mail.pass) {
       this.logger.warn(
         'SMTP chưa đủ (SMTP_HOST/PORT/USER/PASS) — thông báo đơn hàng sẽ bị bỏ qua cho đến khi cấu hình',
       );
+    } else {
+      this.logger.log('Mail transport: smtp');
     }
   }
 
@@ -51,14 +77,6 @@ export class MailService implements OnModuleInit {
         return;
       }
 
-      const transporter = this.getTransporter(mail);
-      if (!transporter) {
-        this.logger.warn(
-          `Bỏ qua gửi mail đơn ${order.id}: chưa cấu hình SMTP (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS)`,
-        );
-        return;
-      }
-
       const from = mail.from || mail.user;
       if (!from) {
         this.logger.warn(
@@ -67,15 +85,22 @@ export class MailService implements OnModuleInit {
         return;
       }
 
-      await transporter.sendMail({
+      const payload: OutgoingMail = {
         from,
-        to: recipients.join(', '),
+        to: recipients,
         subject: `[Minh Sam] Đơn mới ${order.phone} — ${order.totalAmount} VND`,
         text: buildOrderNotificationText(order),
         html: buildOrderNotificationHtml(order),
-      });
+      };
+
+      if (mail.transport === 'gmail-api') {
+        await this.sendViaGmailApi(mail, payload);
+      } else {
+        await this.sendViaSmtp(mail, payload);
+      }
+
       this.logger.log(
-        `Đã gửi mail đơn ${order.id} tới ${recipients.join('; ')}`,
+        `Đã gửi mail đơn ${order.id} tới ${recipients.join('; ')} (${mail.transport})`,
       );
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
@@ -106,6 +131,77 @@ export class MailService implements OnModuleInit {
     return [...unique];
   }
 
+  private async sendViaSmtp(
+    mail: AppConfiguration['mail'],
+    payload: OutgoingMail,
+  ): Promise<void> {
+    const transporter = this.getTransporter(mail);
+    if (!transporter) {
+      throw new Error(
+        'chưa cấu hình SMTP (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS)',
+      );
+    }
+    await transporter.sendMail({
+      from: payload.from,
+      to: payload.to.join(', '),
+      subject: payload.subject,
+      text: payload.text,
+      html: payload.html,
+    });
+  }
+
+  private async sendViaGmailApi(
+    mail: AppConfiguration['mail'],
+    payload: OutgoingMail,
+  ): Promise<void> {
+    const { clientId, clientSecret, refreshToken } = mail.gmail;
+    const user = mail.user;
+    if (!clientId || !clientSecret || !refreshToken || !user) {
+      throw new Error(
+        'Gmail API thiếu SMTP_USER hoặc GMAIL_CLIENT_ID/SECRET/REFRESH_TOKEN',
+      );
+    }
+
+    const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
+    oauth2Client.setCredentials({ refresh_token: refreshToken });
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+    const raw = this.buildRawMimeMessage(payload);
+
+    await gmail.users.messages.send({
+      userId: 'me',
+      requestBody: { raw },
+    });
+  }
+
+  private buildRawMimeMessage(payload: OutgoingMail): string {
+    const boundary = `minhsam_${Date.now()}`;
+    const toHeader = payload.to.join(', ');
+    const lines = [
+      `From: ${payload.from}`,
+      `To: ${toHeader}`,
+      `Subject: =?UTF-8?B?${Buffer.from(payload.subject).toString('base64')}?=`,
+      'MIME-Version: 1.0',
+      `Content-Type: multipart/alternative; boundary="${boundary}"`,
+      '',
+      `--${boundary}`,
+      'Content-Type: text/plain; charset="UTF-8"',
+      'Content-Transfer-Encoding: base64',
+      '',
+      Buffer.from(payload.text, 'utf8').toString('base64'),
+      `--${boundary}`,
+      'Content-Type: text/html; charset="UTF-8"',
+      'Content-Transfer-Encoding: base64',
+      '',
+      Buffer.from(payload.html, 'utf8').toString('base64'),
+      `--${boundary}--`,
+    ];
+    return Buffer.from(lines.join('\r\n'))
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/g, '');
+  }
+
   private getTransporter(
     mail: AppConfiguration['mail'],
   ): Transporter | null {
@@ -126,7 +222,6 @@ export class MailService implements OnModuleInit {
         user,
         pass: pass.replace(/\s+/g, ''),
       },
-      // Timeout ngắn để không làm chậm event loop / treo worker trên server.
       connectionTimeout: 5_000,
       greetingTimeout: 5_000,
       socketTimeout: 10_000,

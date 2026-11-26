@@ -22,10 +22,14 @@ exports.envValidationSchema = joi_1.default.object({
         .pattern(/^\d+(s|m|h|d)$/)
         .required(),
     MAIL_ENABLED: joi_1.default.string().valid('true', 'false').optional(),
+    MAIL_TRANSPORT: joi_1.default.string().valid('smtp', 'gmail-api').optional(),
     SMTP_HOST: joi_1.default.string().optional(),
     SMTP_PORT: joi_1.default.number().port().optional(),
     SMTP_USER: joi_1.default.string().optional(),
     SMTP_PASS: joi_1.default.string().optional(),
     SMTP_FROM: joi_1.default.string().optional(),
+    GMAIL_CLIENT_ID: joi_1.default.string().optional(),
+    GMAIL_CLIENT_SECRET: joi_1.default.string().optional(),
+    GMAIL_REFRESH_TOKEN: joi_1.default.string().optional(),
 });
 //# sourceMappingURL=env.validation.js.map

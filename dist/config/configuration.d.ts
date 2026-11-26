@@ -1,3 +1,4 @@
+export type MailTransport = 'smtp' | 'gmail-api';
 export interface AppConfiguration {
     nodeEnv: string;
     port: number;
@@ -10,11 +11,17 @@ export interface AppConfiguration {
     };
     mail: {
         enabled: boolean;
+        transport: MailTransport;
         host?: string;
         port?: number;
         user?: string;
         pass?: string;
         from?: string;
+        gmail: {
+            clientId?: string;
+            clientSecret?: string;
+            refreshToken?: string;
+        };
     };
 }
 export declare const configuration: () => AppConfiguration;

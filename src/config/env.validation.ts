@@ -17,9 +17,13 @@ export const envValidationSchema = Joi.object({
     .pattern(/^\d+(s|m|h|d)$/)
     .required(),
   MAIL_ENABLED: Joi.string().valid('true', 'false').optional(),
+  MAIL_TRANSPORT: Joi.string().valid('smtp', 'gmail-api').optional(),
   SMTP_HOST: Joi.string().optional(),
   SMTP_PORT: Joi.number().port().optional(),
   SMTP_USER: Joi.string().optional(),
   SMTP_PASS: Joi.string().optional(),
   SMTP_FROM: Joi.string().optional(),
+  GMAIL_CLIENT_ID: Joi.string().optional(),
+  GMAIL_CLIENT_SECRET: Joi.string().optional(),
+  GMAIL_REFRESH_TOKEN: Joi.string().optional(),
 });

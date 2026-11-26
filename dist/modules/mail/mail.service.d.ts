@@ -13,5 +13,8 @@ export declare class MailService implements OnModuleInit {
     notifyNewOrder(order: OrderResponseDto): Promise<void>;
     getNotificationRecipients(): Promise<string[]>;
     parseNotificationEmails(raw: string | null | undefined): string[];
+    private sendViaSmtp;
+    private sendViaGmailApi;
+    private buildRawMimeMessage;
     private getTransporter;
 }

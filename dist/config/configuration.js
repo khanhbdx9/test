@@ -10,6 +10,8 @@ const configuration = () => {
     const refreshExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN;
     const smtpPortRaw = process.env.SMTP_PORT;
     const smtpPort = smtpPortRaw ? Number(smtpPortRaw) : undefined;
+    const transportRaw = process.env.MAIL_TRANSPORT?.trim().toLowerCase();
+    const transport = transportRaw === 'gmail-api' ? 'gmail-api' : 'smtp';
     if (!databaseUrl ||
         !jwtSecret ||
         !jwtExpiresIn ||
@@ -29,11 +31,17 @@ const configuration = () => {
         },
         mail: {
             enabled: process.env.MAIL_ENABLED?.trim().toLowerCase() !== 'false',
+            transport,
             host: process.env.SMTP_HOST?.trim() || undefined,
             port: smtpPort !== undefined && !Number.isNaN(smtpPort) ? smtpPort : undefined,
             user: process.env.SMTP_USER?.trim() || undefined,
             pass: process.env.SMTP_PASS || undefined,
             from: process.env.SMTP_FROM?.trim() || undefined,
+            gmail: {
+                clientId: process.env.GMAIL_CLIENT_ID?.trim() || undefined,
+                clientSecret: process.env.GMAIL_CLIENT_SECRET?.trim() || undefined,
+                refreshToken: process.env.GMAIL_REFRESH_TOKEN?.trim() || undefined,
+            },
         },
     };
 };
